@@ -1,0 +1,10 @@
+[project]
+name = "genaiclass"
+version = "0.1.0"
+description = "Shared provider/config helpers for the BuildingStuffGenAI samples"
+requires-python = ">=3.12"
+dependencies = ["openai>=3.16.2", "python-dotenv>=1.2.3"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

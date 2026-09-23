@@ -1,0 +1,20 @@
+.env
+.env.*
+!.env.example
+bin/
+obj/
+node_modules/
+__pycache__/
+.venv/
+*.pyc
+.transcripts/
+out/
+
+# outputs of the ported Segment 2/4 samples
+samples/02-integrating/build/
+samples/04-local-media/out/
+samples/04-local-media/python/out/
+
+# classic notebooks: generated images and executed copies
+classic/**/outputimage*
+classic/**/*.executed.ipynb

@@ -1,0 +1,14 @@
+# secrets and local settings
+.env
+# generated
+**/build/
+**/out/
+**/__pycache__/
+*.pyc
+.venv/
+node_modules/
+bin/
+obj/
+_tools/test_logs/
+# the Lab 2 sample documents are part of the labs (the workshop root ignores *.pdf)
+!02-rag-mcp/data/*.pdf

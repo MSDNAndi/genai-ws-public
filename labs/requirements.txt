@@ -1,0 +1,23 @@
+# Building Stuff with GenAI — Python lab dependencies (Python 3.11+; 3.12 recommended)
+# Pinned to the versions verified together on 2026-09-22 (labs/_verified_snippets). Install:
+#   python -m venv .venv && source .venv/bin/activate      (Windows: .venv\Scripts\activate)
+#   pip install -r requirements.txt
+openai==3.18.0
+python-dotenv==1.2.3
+pydantic>=2.10,<3
+numpy>=1.26
+# Microsoft Agent Framework (lean install: core + OpenAI-compatible clients + orchestrations)
+agent-framework-core==1.19.0
+agent-framework-openai==1.14.4
+agent-framework-orchestrations==1.2.0
+# OpenTelemetry SDK for Lab 3 step 5 (the lean MAF install only brings the API)
+opentelemetry-sdk==1.44.0
+# MCP: stay on 1.30 — MAF 1.19's MCP tools break if mcp 2.x is in the same environment (see labs/_verified_snippets/round2/python/FINDINGS.md)
+mcp==1.30.0
+# LangChain / LangGraph (Lab 3 stretch)
+langchain==1.4.2
+langchain-openai==1.6.3
+langgraph==1.2.12
+# Lab 2 ingestion + Lab 4 contact sheets
+markitdown[pdf]==0.1.8
+pillow>=10

@@ -1,0 +1,12 @@
+.env
+**/.env
+.venv/
+**/.venv/
+node_modules/
+__pycache__/
+*.pyc
+bin/
+obj/
+build/
+out/
+.ipynb_checkpoints/

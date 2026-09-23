@@ -1,0 +1,52 @@
+[project]
+name = "genaiclass-samples"
+version = "0.1.0"
+description = "Workspace env for the BuildingStuffGenAI samples (debugging / IDE only)"
+requires-python = ">=3.12"
+
+# Each sample also declares its own PEP 723 inline dependencies and runs
+# standalone with `uv run <file>.py` in a throwaway environment. This workspace
+# env exists so that VS Code / PyCharm have one interpreter to attach a debugger
+# to, with everything the samples need already present. Create it with:
+#
+#     uv sync
+#
+# Nothing is ever installed into a system or user Python.
+dependencies = [
+    "genaiclass",
+    "openai>=3.16.2",
+    "python-dotenv>=1.2.3",
+    "httpx>=0.28",
+    "pydantic>=2.10",
+    "jupytext>=1.17",
+    "debugpy>=1.8",
+    "ipykernel>=7",
+    "a2a-sdk==1.1.5",
+    "agent-framework-a2a==1.0.0b260918",
+    "agent-framework-core==1.19.0",
+    "agent-framework-foundry==1.13.1",
+    "agent-framework-foundry-hosting==1.0.0b260918",
+    "agent-framework-openai==1.14.4",
+    "agent-framework-orchestrations==1.2.0",
+    "azure-ai-projects>=2.2.0",
+    "azure-identity==1.25.3",
+    "claude-agent-sdk==0.2.157",
+    "github-copilot-sdk==1.0.14",
+    "langchain==1.4.2",
+    "langchain-openai==1.6.2",
+    "langgraph==1.2.11",
+    "mcp==1.30.0",
+    "numpy>=1.26",
+    "openai-agents==0.22.3",
+    "sse-starlette==3.4.11",
+    "starlette==1.6.0",
+    "uvicorn==0.53.0",
+    "markitdown[pdf]==0.1.8",
+    "pillow>=10",
+]
+
+[tool.uv.sources]
+genaiclass = { path = "shared/python", editable = true }
+
+[tool.uv]
+package = false

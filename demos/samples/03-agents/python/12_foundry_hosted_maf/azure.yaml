@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+# Deploy with the Azure Developer CLI + the Foundry agents extension:
+#   azd ai agent init -m azure.yaml
+#   azd up
+# Model block copied from Microsoft's verified sample; to use the workshop's
+# existing deployment instead, delete `deployments:` and set
+# AZURE_AI_MODEL_DEPLOYMENT_NAME to its name (e.g. gpt-5-mini).
+requiredVersions:
+  azd: '>=1.27.1'
+  extensions:
+    azure.ai.agents: '>=1.0.0-beta.9'
+name: genaiclass-travel-agent-maf
+services:
+  ai-project:
+    host: azure.ai.project
+    deployments:
+      - name: gpt-5.4-mini
+        model:
+          format: OpenAI
+          name: gpt-5.4-mini
+          version: '2026-03-17'
+        sku:
+          name: GlobalStandard
+          capacity: 10
+  travel-agent-maf:
+    host: azure.ai.agent
+    project: .
+    language: python
+    kind: hosted
+    name: travel-agent-maf
+    description: Workshop sample 12 - MAF agent hosted by Foundry.
+    uses:
+      - ai-project
+    protocols:
+      - protocol: responses
+        version: 2.0.0
+    env:
+      AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+    container:
+      resources:
+        cpu: '0.5'
+        memory: 1Gi
+infra:
+  provider: microsoft.foundry

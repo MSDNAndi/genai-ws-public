@@ -1,0 +1,4 @@
+# Optional extras for stretch goals (install only if you need them)
+agent-framework-devui==1.0.0b260918   # Lab 3: browser UI for agents/workflows (beta)
+pydantic-ai==2.32.2                  # Lab 3: the "thin framework" comparison
+reportlab>=4                          # only to regenerate the Lab 2 sample PDFs (labs/02-rag-mcp/data/make_pdfs.py)

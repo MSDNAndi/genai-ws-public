@@ -1,0 +1,7 @@
+{
+  "_note": "TEMPLATE — braucht Custom-Nodes (ComfyUI-TRELLIS oder Hunyuan3D). Node-Namen je nach Wrapper anpassen.",
+  "1": {"class_type":"LoadImage","inputs":{"image":"subject.png"},"_meta":{"title":"Load Image"}},
+  "2": {"class_type":"ImageRemoveBackground","inputs":{"image":["1",0]},"_meta":{"title":"Remove BG (optional)"}},
+  "3": {"class_type":"TrellisImageTo3D","inputs":{"image":["2",0],"seed":1,"ss_steps":12,"slat_steps":12,"cfg":7.5},"_meta":{"title":"TRELLIS Image→3D (SLAT)"}},
+  "4": {"class_type":"TrellisExportGLB","inputs":{"model":["3",0],"simplify":0.95,"texture_size":1024},"_meta":{"title":"Export GLB (Mesh+PBR)"}}
+}
