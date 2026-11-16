@@ -55,6 +55,8 @@ Red instead? The line tells you what to fix. The usual one: no key. Open `labs/.
 
 ![TypeScript hello](walkthrough/08-typescript.jpg)
 
+In all three languages the default model (gpt-5-nano, small and cheap) happily explains *authentication* tokens — the question never says "LLM". That is Lab 1's first lesson: put the domain into the system prompt.
+
 That's it: the labs are in `labs/01-hello-model` … `labs/04-local-media`, each with a README.
 
 ## Coming back later (after lunch, tomorrow)
@@ -91,5 +93,7 @@ First call in Python, C# and TypeScript:
 ## Notebooks (the instructor's demos)
 
 The demos from the talk are in `demos/notebooks/` as Jupyter notebooks, ready to run in the same codespace: open one (for example `demos/notebooks/01-foundations/python/01_hello_model.ipynb`) and click **Run All**. Nothing to install or configure: they use the same key and settings as the labs. If VS Code asks for a kernel, pick **Python 3 (labs/.venv)**.
+
+![A demo notebook after Run All: answer, finish_reason, tokens](walkthrough/09-notebook.jpg)
 
 A few notebooks need things a codespace doesn't have (a local GPU model, ComfyUI, a Claude account, an Azure deployment). Their first cell says so, and they stop early with a short explanation; a red `SystemExit` there is expected.
