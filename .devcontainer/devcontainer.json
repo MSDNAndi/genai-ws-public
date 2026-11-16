@@ -41,7 +41,10 @@
         "terminal.integrated.cwd": "${containerWorkspaceFolder}/labs",
         "editor.fontSize": 15,
         "terminal.integrated.fontSize": 15,
-        "workbench.startupEditor": "none"
+        "workbench.startupEditor": "none",
+        // Markdown (START-HERE, lab READMEs) opens rendered, with copy buttons on the commands
+        "workbench.editorAssociations": { "*.md": "vscode.markdown.preview.editor" },
+        "csharp.suppressBuildAssetsNotification": true
       }
     }
   }

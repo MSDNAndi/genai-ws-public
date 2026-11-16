@@ -1,11 +1,20 @@
 # Start here
 
-Everything is installed. The terminal below is already in `labs/`. Run one of these:
+Everything is installed. The terminal below is already in `labs/`. Pick one language, copy its command (hover, then the copy icon), paste it into the terminal and press Enter.
 
+**Python**
 ```bash
-python 01-hello-model/python/solution/01_hello.py                 # Python
-dotnet run --file 01-hello-model/csharp/solution/01_hello.cs      # C#
-node 01-hello-model/typescript/solution/01_hello.mjs              # TypeScript
+python 01-hello-model/python/solution/01_hello.py
+```
+
+**C#**
+```bash
+dotnet run --file 01-hello-model/csharp/solution/01_hello.cs
+```
+
+**TypeScript**
+```bash
+node 01-hello-model/typescript/solution/01_hello.mjs
 ```
 
 You should see a model answer within a few seconds.

@@ -1,5 +1,13 @@
 # Building Stuff with GenAI - workshop material
 
+## Fastest start: in your browser, nothing to install
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/msdnAndi/genai-ws-public?quickstart=1)
+
+Click the button, paste the key from your card into the **GENAI_API_KEY** box, click **Create codespace**. Step by step with screenshots: [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md).
+Prefer your own machine? Follow `labs/00-setup/SETUP.md` below.
+
+
 Two folders:
 
 | Folder | What it is | Start here |
