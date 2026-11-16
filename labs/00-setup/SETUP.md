@@ -117,7 +117,7 @@ Back to `labs/.env` (drops all `GENAI_*`, `OLLAMA_*`, … variables):
 | `404` / "DeploymentNotFound" | model name not deployed on the endpoint, or `GENAI_BASE_URL` does not end in `/openai/v1` (`/v1` for local servers) |
 | `429` | your per-minute token limit — wait a minute, then retry |
 | `403` (quota exceeded) | today's token quota for your key is used up — ask the instructor |
-| "does not support reasoning_effort" | the chosen model is not a reasoning model: delete `GENAI_REASONING_EFFORT` from `.env` |
+| "Unrecognized request argument supplied: reasoning_effort", "Property reasoning_effort has an invalid value" or "does not support reasoning_effort" | the chosen model does not take that setting (non-reasoning models, grok; DeepSeek only takes `none`/`high`/`max`): delete `GENAI_REASONING_EFFORT` from `.env` or set it to `none` |
 | Ollama is very slow | use a smaller model, keep `OLLAMA_REASONING_EFFORT=none`, close other heavy apps |
 | SSL / certificate errors behind a corporate proxy | set `HTTPS_PROXY`; ask IT for the proxy CA and set `SSL_CERT_FILE` / `NODE_EXTRA_CA_CERTS` |
 | Nothing works on the day (Wi-Fi) | the instructor runs an offline stand-in on the room network (`mock_openai_server.py`); point `GENAI_BASE_URL` at the address on the screen — answers are echoes, but every lab script runs. At home you can start it yourself: `python 00-setup/mock/mock_openai_server.py` → `http://127.0.0.1:8123/v1`, key `test`, model `mock-model` |

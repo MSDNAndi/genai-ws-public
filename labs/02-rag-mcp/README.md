@@ -52,7 +52,7 @@ your `.venv`, not the system one):
 
 | Host | How (as of 2026-09 — check your host's docs if a field was renamed) |
 |---|---|
-| MCP Inspector (in a codespace: run it, the UI opens in a new browser tab; if it cannot connect, use `05_mcp_client`) | `npx @modelcontextprotocol/inspector <labs>/.venv/bin/python <labs>/02-rag-mcp/python/solution/04_mcp_server.py` |
+| MCP Inspector (in a codespace: run it, the UI opens in a new browser tab; if it cannot connect, use `05_mcp_client`) | `npx @modelcontextprotocol/inspector <labs>/.venv/bin/python <labs>/02-rag-mcp/python/solution/04_mcp_server.py` (key only in your environment, not in `labs/.env`? add `-e GENAI_API_KEY=$GENAI_API_KEY` right after `inspector`) |
 | Claude Code | `claude mcp add kestrel-docs -- <labs>/.venv/bin/python <labs>/02-rag-mcp/python/solution/04_mcp_server.py` |
 | VS Code + GitHub Copilot (agent mode) | `.vscode/mcp.json`: `{"servers": {"kestrel-docs": {"type": "stdio", "command": "<python>", "args": ["<…>/04_mcp_server.py"]}}}` |
 | LM Studio | Program → Install → Edit `mcp.json`: `{"mcpServers": {"kestrel-docs": {"command": "<python>", "args": ["<…>/04_mcp_server.py"]}}}` |

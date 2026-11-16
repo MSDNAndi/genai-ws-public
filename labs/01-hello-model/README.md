@@ -61,7 +61,7 @@ model, a second vendor behind the same key (`GENAI_MODEL_2`), and Ollama (+ LM S
 
 ## Troubleshooting
 401 → key/header · 404 → model name or URL (`…/openai/v1`) · 429 → per-minute limit, wait a minute · 403 → today's quota is used up, ask the instructor ·
-"reasoning_effort not supported" → remove `GENAI_REASONING_EFFORT` for that model · a local model "thinks" for a long
+"Unrecognized request argument supplied: reasoning_effort" / "Property reasoning_effort has an invalid value" → remove `GENAI_REASONING_EFFORT` (or set it to `none`) for that model · a local model "thinks" for a long
 time → `OLLAMA_REASONING_EFFORT=none`.
 
 ## Why it matters

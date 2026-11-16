@@ -47,6 +47,6 @@ The workshop key stops working after the workshop. The code works with any OpenA
 | `GENAI_MODEL`, `GENAI_MODEL_2` | your **deployment names** | model names, e.g. `gpt-5-nano` |
 | `GENAI_EMBED_MODEL`, `GENAI_IMAGE_MODEL`, `GENAI_TTS_MODEL` | your deployment names | `text-embedding-3-large`, `gpt-image-1-mini`, `gpt-4o-mini-tts` |
 
-Model rejects `reasoning_effort` (non-reasoning models, DeepSeek, grok)? Delete the `GENAI_REASONING_EFFORT` line. Local models (Ollama, LM Studio, Foundry Local) and every other option are explained in `.env.example`.
+Model rejects `reasoning_effort` (non-reasoning models, DeepSeek, grok)? Delete the `GENAI_REASONING_EFFORT` line (DeepSeek also accepts `none`). Local models (Ollama, LM Studio, Foundry Local) and every other option are explained in `.env.example`.
 
 **Important: environment variables win over `labs/.env`.** The key from the "Create codespace" page is one. `python 00-setup/settings.py` shows every setting and where it comes from; `source 00-setup/use-dotenv.sh` drops them for this terminal so `labs/.env` is used. To get rid of the codespace secret for good, remove it at github.com/settings/codespaces (Secrets) and restart the codespace. Then run `python 00-setup/check_env.py` to confirm.
