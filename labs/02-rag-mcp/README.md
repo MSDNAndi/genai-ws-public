@@ -1,13 +1,14 @@
 # Lab 2 — RAG + MCP (core + stretch)
 
 **Verified on:** 2026-09-22 against Ollama 0.34.3 (qwen3.5:2b, qwen3:1.7b, bge-m3 · Linux, CPU only) and 2026-09-23
-against the offline mock (all solutions and starters) · not yet against the workshop endpoint (not provisioned).
+against the offline mock (all solutions and starters) · 2026-11-16 against the workshop endpoint (gpt-5-nano,
+text-embedding-3-large) in the Codespaces dev container (all solutions and starters).
 
 **Goal:** turn three PDFs into a searchable index, answer questions *with citations* (and admit when the documents
-don't say), then publish your search as an **MCP server** that any agent or AI app can use.
+don't say), then publish your search as an **MCP server** — a plug-in that any agent or AI app can use.
 
 The documents are about *Kestrel Drone Logistics*, a fictional company — the model cannot know the answers without
-retrieval, so you can see whether RAG works. They live in `data/` (`make_pdfs.py` regenerates them).
+retrieval, so you can see whether RAG (look it up, then answer) works. They live in `data/` (`make_pdfs.py` regenerates them).
 
 | Step | Python | C# | TypeScript |
 |---|---|---|---|
@@ -47,12 +48,17 @@ reads a resource. *Checkpoint:* two hits for "night flight altitude limit".
 Gotcha you will meet everywhere: stdio clients start servers with a minimal environment — our servers find
 `labs/.env` themselves; MCP hosts have an `env` field for the same reason.
 
-**6 · Use it from an AI app.** Plug the *same* server into a host you use (absolute paths; use the Python from
-your `.venv`, not the system one):
+**6 · Use it from an AI app.** Quickest: the **MCP Inspector**. From `labs/`, run
+
+```bash
+npx @modelcontextprotocol/inspector .venv/bin/python 02-rag-mcp/python/solution/04_mcp_server.py
+```
+
+The UI opens in a new browser tab: *Connect* → *Tools* → `search_docs`. (Own machine, key not in `labs/.env`? Add
+`-e GENAI_API_KEY=$GENAI_API_KEY` right after `inspector`.) Other hosts take the *same* command — use absolute paths:
 
 | Host | How (as of 2026-09 — check your host's docs if a field was renamed) |
 |---|---|
-| MCP Inspector (in a codespace: run it, the UI opens in a new browser tab; if it cannot connect, use `05_mcp_client`) | `npx @modelcontextprotocol/inspector <labs>/.venv/bin/python <labs>/02-rag-mcp/python/solution/04_mcp_server.py` (key only in your environment, not in `labs/.env`? add `-e GENAI_API_KEY=$GENAI_API_KEY` right after `inspector`) |
 | Claude Code | `claude mcp add kestrel-docs -- <labs>/.venv/bin/python <labs>/02-rag-mcp/python/solution/04_mcp_server.py` |
 | VS Code + GitHub Copilot (agent mode) | `.vscode/mcp.json`: `{"servers": {"kestrel-docs": {"type": "stdio", "command": "<python>", "args": ["<…>/04_mcp_server.py"]}}}` |
 | LM Studio | Program → Install → Edit `mcp.json`: `{"mcpServers": {"kestrel-docs": {"command": "<python>", "args": ["<…>/04_mcp_server.py"]}}}` |
@@ -60,6 +66,7 @@ your `.venv`, not the system one):
 C# server: run `dotnet build 04_mcp_server.cs` once, then use command `dotnet` with args
 `["run", "--file", "<…>/04_mcp_server.cs", "--no-build"]` (build output on stdout would break the protocol).
 TypeScript server: command `node`, args `["<…>/04_mcp_server.mjs"]`.
+If the Inspector cannot connect, `05_mcp_client` shows the same server from code.
 Then ask the host: *"Using kestrel-docs: how long are proof-of-delivery photos kept?"*
 
 ## Stretch
@@ -76,8 +83,7 @@ Then ask the host: *"Using kestrel-docs: how long are proof-of-delivery photos k
   output of step 1, in every language.
 - **No embedding model on your endpoint, or offline:** embed locally with Ollama — `EMBED_BASE_URL=http://localhost:11434/v1`,
   `EMBED_API_KEY=ollama`, `GENAI_EMBED_MODEL=bge-m3`. Query with the same model you indexed with.
-- **No MCP host installed (step 6):** `05_mcp_client` and the MCP Inspector (`npx @modelcontextprotocol/inspector …`) show
-  the same server.
+- **No MCP host installed (step 6):** the MCP Inspector command above, or `05_mcp_client`, shows the same server.
 - **No Wi-Fi:** the instructor's mock (see Lab 1). Its embeddings are hashed word counts, so retrieval matches on
   shared words only, and the answers are echoes — enough to build and test the MCP server.
 

@@ -1,7 +1,11 @@
-"""Lab 2 · step 4 — expose the retrieval as an MCP server (stdio). Any MCP host can now use your documents:
-Claude Code, GitHub Copilot (VS Code / CLI), LM Studio, MCP Inspector ... and the agents in Lab 3.
+"""Lab 2 · step 4 — an MCP server is just functions with descriptions.
 
-Never print() in a stdio MCP server — stdout carries the protocol. Log to stderr.
+MCP (Model Context Protocol = plug-in standard for AI tools) lets any host — Claude Code, GitHub Copilot, LM Studio,
+MCP Inspector, the agents in Lab 3 — use our search. We publish three things:
+  tool     search_docs  (a function the model may call; its docstring is the description the model reads)
+  resource kestrel://docs/<name>  (read-only data, here: a whole document)
+  prompt   cite_answer  (a reusable prompt template)
+Notice: never print() here — with stdio (talking over stdin/stdout) stdout IS the protocol. Log to stderr.
 Runs on mcp 1.30 (pinned for the labs) and on mcp 2.x (FastMCP was renamed MCPServer).
 """
 import logging
@@ -13,14 +17,15 @@ try:
 except ImportError:
     from mcp.server.fastmcp import FastMCP as MCPServer         # mcp 1.x
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))         # hosts start us from anywhere: find kestrel_search.py
 from kestrel_search import BUILD, LAB2, Index                   # noqa: E402
 
-logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
-mcp = MCPServer("kestrel-docs")
-index = Index()
+logging.basicConfig(stream=sys.stderr, level=logging.WARNING)   # logs -> stderr, never stdout
+mcp = MCPServer("kestrel-docs")                                 # the name hosts show for this server
+index = Index()                                                 # the same search as step 3
 
 
+# --- tool: the model decides when to call it, based on the name + docstring + typed arguments ----------------------
 # >>> TODO 3: register a tool `search_docs(query, k=4)` that returns the top-k chunks (id, doc, score, text) — the docstring becomes the tool description the model sees
 @mcp.tool()
 def search_docs(query: str, k: int = 4) -> list[dict]:
@@ -30,13 +35,15 @@ def search_docs(query: str, k: int = 4) -> list[dict]:
 # <<< TODO
 
 
+# --- resource: data the host can read by URI; {name} in the URI becomes the function argument ----------------------
 @mcp.resource("kestrel://docs/{name}")
 def get_document(name: str) -> str:
     """The full extracted text of one document, e.g. kestrel://docs/kestrel_operations_handbook"""
-    path = BUILD / f"{Path(name).stem}.md"
+    path = BUILD / f"{Path(name).stem}.md"                      # keep only the stem: "../x.pdf" -> "x.md"
     return (path if path.exists() else LAB2 / "data" / "prebuilt" / path.name).read_text(encoding="utf-8")
 
 
+# --- prompt: a ready-made instruction a user can pick in the host ---------------------------------------------------
 @mcp.prompt()
 def cite_answer(question: str) -> str:
     """A reusable prompt: answer a question with citations from search_docs."""
@@ -44,4 +51,4 @@ def cite_answer(question: str) -> str:
 
 
 if __name__ == "__main__":
-    mcp.run()                                                   # stdio transport
+    mcp.run()                                                   # stdio transport: wait for requests on stdin

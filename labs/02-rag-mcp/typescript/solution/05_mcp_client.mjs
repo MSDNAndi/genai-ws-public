@@ -1,4 +1,8 @@
 // Lab 2 · step 5 — talk to your MCP server from code (this is what every MCP host does under the hood).
+//
+// The client starts 04_mcp_server.mjs as a child process, does the MCP handshake, then lists tools, calls
+// search_docs, reads a resource and lists prompts. Notice: the client never imports the server's code — it only
+// sends JSON messages over stdin/stdout, so the server could be written in any language.
 import { join } from "node:path";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
@@ -11,11 +15,11 @@ const transport = new StdioClientTransport({ command: process.execPath, args: [S
 const client = new Client({ name: "lab2-client", version: "1.0.0" });
 await client.connect(transport);                    // starts `node 04_mcp_server.mjs` and does the MCP handshake
 try {
-  const { tools } = await client.listTools();
+  const { tools } = await client.listTools();       // what a host shows the model
   console.log("tools:", JSON.stringify(tools.map((t) => [t.name, (t.description ?? "").split(".")[0]])));
   const result = await client.callTool({ name: "search_docs", arguments: { query: "night flight altitude limit", k: 2 } });
   if (result.isError) throw new Error(`search_docs failed: ${result.content[0]?.text}`);
-  for (const block of result.content) {
+  for (const block of result.content) {             // one text block (JSON) per hit
     console.log("hit:", JSON.stringify(JSON.parse(block.text)).slice(0, 220));
   }
   const doc = await client.readResource({ uri: "kestrel://docs/kestrel_customer_service_policy" });

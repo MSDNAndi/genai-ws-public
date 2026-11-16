@@ -1,8 +1,12 @@
 // STARTER - complete the TODO block(s). The finished version is in solution/04_mcp_server.mjs
-// Lab 2 · step 4 — expose the retrieval as an MCP server (stdio). Any MCP host can now use your documents:
-// Claude Code, GitHub Copilot (VS Code / CLI), LM Studio, MCP Inspector ... and the agents in Lab 3.
+// Lab 2 · step 4 — an MCP server is just functions with descriptions.
 //
-// Never console.log() in a stdio MCP server — stdout carries the protocol. Log with console.error (stderr).
+// MCP (Model Context Protocol = plug-in standard for AI tools) lets any host — Claude Code, GitHub Copilot, LM Studio,
+// MCP Inspector, the agents in Lab 3 — use our search. We publish three things:
+//   tool     search_docs  (a function the model may call; its description is what the model reads)
+//   resource kestrel://docs/<name>  (read-only data, here: a whole document)
+//   prompt   cite_answer  (a reusable prompt template)
+// Notice: never console.log() here — with stdio (talking over stdin/stdout) stdout IS the protocol. Use console.error.
 // MCP TypeScript SDK v2 (@modelcontextprotocol/server 2.0): registerTool / registerResource / registerPrompt.
 //   Try it: npx @modelcontextprotocol/inspector node 04_mcp_server.mjs
 import { existsSync, readFileSync } from "node:fs";
@@ -10,8 +14,9 @@ import { dirname, join, parse } from "node:path";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import OpenAI from "openai";
-import { z } from "zod";
+import { z } from "zod";                            // zod describes the tool's arguments (types + descriptions)
 
+// --- settings: find labs/ and load labs/.env -------------------------------------------------------------------------
 let LABS = import.meta.dirname;                     // labs/.env, found from THIS file's folder: MCP hosts start us anywhere
 while (!existsSync(join(LABS, "_tools", "make_starters.py")) && LABS !== dirname(LABS)) LABS = dirname(LABS);
 // labs/.env, or one .env at the repo root: load every .env from labs/ upward (never overwrites) - nearest wins
@@ -23,35 +28,39 @@ const LAB2 = join(LABS, "02-rag-mcp");
 const BUILD = join(LAB2, "build");
 
 // --- retrieval, same as 03_ask.mjs: build/index.json + a query embedding, cosine top-k ----------------------------
+// (only embeddings needed here: the HOST's model writes the answer)
 const INDEX = join(BUILD, "index.json");
 if (!existsSync(INDEX)) {
-  console.error(`${INDEX} not found - run 02_embed.mjs first`);
+  console.error(`${INDEX} not found - run 02_embed.mjs first`);   // stderr, never stdout
   process.exit(1);
 }
 const index = JSON.parse(readFileSync(INDEX, "utf8"));
 const KEY = process.env.EMBED_API_KEY || process.env.GENAI_API_KEY;
 const embedder = new OpenAI({ baseURL: process.env.EMBED_BASE_URL || process.env.GENAI_BASE_URL, apiKey: KEY,
-  defaultHeaders: (process.env.GENAI_KEY_HEADER ?? "api-key") === "api-key" ? { "api-key": KEY } : undefined });
+  defaultHeaders: (process.env.GENAI_KEY_HEADER ?? "api-key") === "api-key" ? { "api-key": KEY } : undefined });   // Azure-style "api-key" header
 
+// embed the query, score every chunk by cosine similarity (1 = same meaning), return the k best
 async function search(query, k = 4) {
   const r = await embedder.embeddings.create({ model: index.embed_model, input: [query], encoding_format: "float" });
-  const q = r.data[0].embedding;
+  const q = r.data[0].embedding;                    // the query must be embedded with the SAME model as the chunks
   if (q.length !== index.dims) throw new Error(`index has ${index.dims} dims, query has ${q.length} - re-run 02_embed.mjs`);
-  const length = Math.hypot(...q);
+  const length = Math.hypot(...q);                  // chunk vectors are unit length; divide by the query's length
   return index.items
     .map(({ vector, ...chunk }) => ({ ...chunk, score: vector.reduce((sum, x, i) => sum + x * q[i], 0) / length }))
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score)              // best first
     .slice(0, k)
     .map((hit) => ({ ...hit, score: Math.round(hit.score * 1000) / 1000 }));
 }
 
 // --- the MCP server --------------------------------------------------------------------------------------------------
 function createServer() {
-  const server = new McpServer({ name: "kestrel-docs", version: "1.0.0" });
+  const server = new McpServer({ name: "kestrel-docs", version: "1.0.0" });   // the name hosts show
 
+  // tool: the model decides when to call it, based on the name + description + typed arguments
   // TODO 3: register a tool `search_docs(query, k=4)` that returns the top-k chunks (id, doc, score, text) — the description is what the model sees
   throw new Error("TODO 3: register a tool `search_docs(query, k=4)` that returns the top-k chunks (id, doc, score, text) — the description is what the model sees");
 
+  // resource: data the host can read by URI; {name} in the URI becomes an argument
   server.registerResource("document", new ResourceTemplate("kestrel://docs/{name}", { list: undefined }),
     { description: "The full extracted text of one document, e.g. kestrel://docs/kestrel_operations_handbook", mimeType: "text/markdown" },
     async (uri, { name }) => {
@@ -60,6 +69,7 @@ function createServer() {
       return { contents: [{ uri: uri.href, mimeType: "text/markdown", text: readFileSync(path, "utf8") }] };
     });
 
+  // prompt: a ready-made instruction a user can pick in the host
   server.registerPrompt("cite_answer", {
     description: "A reusable prompt: answer a question with citations from search_docs.",
     argsSchema: z.object({ question: z.string() }),
