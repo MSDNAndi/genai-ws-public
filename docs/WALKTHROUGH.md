@@ -81,7 +81,7 @@ Stop or delete the codespace at [github.com/codespaces](https://github.com/codes
 ## Videos
 
 Want to see what a working run looks like before you start? Short recordings of every lab are in
-[recordings/](recordings/README.md). The [overview video](recordings/overview.mp4) shows all of them in about 4.5 minutes.
+[recordings/](recordings/README.md). The [overview video](recordings/overview.mp4) shows all of them in about 7.5 minutes (each result stays on screen for a few seconds).
 
 Setup check (`python 00-setup/check_env.py`):
 

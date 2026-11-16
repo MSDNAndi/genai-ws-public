@@ -5,7 +5,7 @@ default model `gpt-5-nano` (second vendor: `DeepSeek-V4.1-Flash-1017`). Each com
 exactly as you would type it. Long model waits are cut to 2 s, so the real runs take longer than the clips.
 Model answers are different every run, so your output won't match word for word.
 
-**Start with the overview:** [overview.mp4](overview.mp4) (about 4.5 min, all clips with title cards, played at 1.2x).
+**Start with the overview:** [overview.mp4](overview.mp4) (about 7.5 min, all clips with title cards, normal speed; the result of every step stays on screen for 6 s so you can read it or pause).
 
 | Clip | Shows | Command (from `labs/`) |
 |---|---|---|

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Stitch the clip MP4s into one overview video with a title card before each clip.
-# usage: overview.sh MP4_DIR OUT.mp4 [SPEED]   (SPEED > 1 plays clips faster; cards stay 2 s)
+# usage: overview.sh MP4_DIR OUT.mp4 [SPEED] [HOLD]
+#   SPEED > 1 plays clips faster (default 1); HOLD = seconds the last frame of each clip stays on screen (default 6),
+#   so viewers can read the result (or hit pause) before the next title card (3 s).
 set -eu
-DIR=$1; OUT=$2; SPEED=${3:-1}
+DIR=$1; OUT=$2; SPEED=${3:-1}; HOLD=${4:-6}
 FONT=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
 W=1468; H=1040; TMP=$(mktemp -d)
 CLIPS=(
@@ -32,12 +34,12 @@ card() { # $1 = text, $2 = output, $3 = seconds, $4 = font size
     -vf "drawtext=fontfile=$FONT:textfile=$TMP/t.txt:fontsize=$4:fontcolor=white:x=(w-tw)/2:y=(h-th)/2,format=yuv420p" \
     -c:v libx264 -preset slow -crf 28 "$2"
 }
-card "Building Stuff with GenAI · the labs in 4 minutes" "$TMP/c_intro.mp4" 3 46
+card "Building Stuff with GenAI · the labs, step by step" "$TMP/c_intro.mp4" 4 46
 echo "file '$TMP/c_intro.mp4'" >> "$TMP/list.txt"
 for e in "${CLIPS[@]}"; do
   n=${e%%|*}; t=${e#*|}; [ -f "$DIR/$n.mp4" ] || { echo "skip $n"; continue; }
-  i=$((i+1)); card "$t" "$TMP/c$i.mp4" 2 72
-  ffmpeg -loglevel error -y -i "$DIR/$n.mp4" -vf "setpts=PTS/$SPEED,fps=12,format=yuv420p" \
+  i=$((i+1)); card "$t" "$TMP/c$i.mp4" 3 72
+  ffmpeg -loglevel error -y -i "$DIR/$n.mp4" -vf "setpts=PTS/$SPEED,fps=12,tpad=stop_mode=clone:stop_duration=$HOLD,format=yuv420p" \
     -c:v libx264 -preset slow -crf 28 "$TMP/v$i.mp4"
   printf "file '%s'\nfile '%s'\n" "$TMP/c$i.mp4" "$TMP/v$i.mp4" >> "$TMP/list.txt"
 done
