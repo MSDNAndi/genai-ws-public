@@ -82,6 +82,7 @@ Stop or delete the codespace at [github.com/codespaces](https://github.com/codes
 
 Want to see what a working run looks like before you start? Short recordings of every lab are in
 [recordings/](recordings/README.md). The [overview video](recordings/overview.mp4) shows all of them in about 7.5 minutes (each result stays on screen for a few seconds).
+With sound: [overview-extras.mp4](recordings/overview-extras.mp4) (about 3 min: the A2A bazaar, then the generated image, speech and chain results you can see and hear).
 
 Setup check (`python 00-setup/check_env.py`):
 

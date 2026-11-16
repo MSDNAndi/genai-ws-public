@@ -39,6 +39,16 @@ Model answers are different every run, so your output won't match word for word.
 
 `cast/` holds the raw asciicast files (play them with `asciinema play cast/<name>.cast`).
 
+## Extras (with sound)
+
+Clips where the lab's generated content is shown after the terminal run (image full-frame, speech audible with subtitles):
+
+- [overview-extras.mp4](overview-extras.mp4): about 3 min, the four clips below with title cards (built by `tools/overview-extras.sh`).
+- [03_bazaar.mp4](03_bazaar.mp4): A2A bazaar, three local agents on three vendors' models (pirate on DeepSeek, chef on Llama, poet on gpt-5-nano): `--cards`, `--all`, then the orchestrator picks agents.
+- [04_cloud_image_show.mp4](04_cloud_image_show.mp4): `04_cloud_image.py`, then the generated image with its prompt.
+- [04_tts_sound.mp4](04_tts_sound.mp4): `05_tts.py`, then `out/welcome.wav` plays (waveform and subtitle).
+- [04_chain_sound.mp4](04_chain_sound.mp4): `06_chain.py` baseline and a writer swap (grok), each result shown as image + narration audio.
+
 ## Re-recording
 
 The scripts are in `tools/`. Run them inside the codespace (or the dev container), from `labs/`, with
