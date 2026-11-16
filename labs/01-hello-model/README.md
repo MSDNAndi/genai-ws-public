@@ -28,7 +28,7 @@ Files without a TODO simply run — read them, run them, change them.
 "LLM". Put the domain into the system prompt and run again: context fixes more than a bigger model.
 
 **2 · Knobs — `02_knobs`.** Same prompt at temperature 0, 1 and 1.6, then `top_p` and `seed`.
-With `gpt-5-mini` you will get an error instead: reasoning models fix temperature and offer `reasoning_effort` —
+With `gpt-5-nano` (the default) you will get an error instead: reasoning models fix temperature and offer `reasoning_effort` —
 the script shows both. Run it again with `GENAI_MODEL=<your GENAI_MODEL_2>` (a non-reasoning vendor) to see the
 temperature effect. *What to notice:* temperature 0 ≈ repeatable, not guaranteed; reasoning tokens are billed but hidden.
 

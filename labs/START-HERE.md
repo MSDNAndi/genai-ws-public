@@ -21,7 +21,15 @@ You should see a model answer within a few seconds.
 
 **It says the key is missing, or you get a 401:** open `labs/.env`, add the line `GENAI_API_KEY=<the key from your card>`, save, and run the command again.
 
-**Try another model:** in `labs/.env`, change `GENAI_MODEL=gpt-5-mini` to `gpt-6-astra` or `DeepSeek-V3.2`.
+**Try another model:** in `labs/.env`, change `GENAI_MODEL=gpt-5-nano` to one of these (same key, all cheap; the workshop gateway refuses anything else):
+
+| Model | Vendor | Note |
+|---|---|---|
+| `gpt-5-nano` (default), `gpt-5-mini` | OpenAI | reasoning models: keep `GENAI_REASONING_EFFORT=low` |
+| `gpt-oss-120b` | OpenAI, open weights | the same model you can run locally |
+| `DeepSeek-V4.1-Flash-1017` | DeepSeek | delete the `GENAI_REASONING_EFFORT` line |
+| `grok-4-1-fast-non-reasoning` | xAI | delete the `GENAI_REASONING_EFFORT` line |
+| `Llama-4-Maverick-17B-128E-Instruct-FP8` | Meta | |
 
 **The labs:** `01-hello-model`, `02-rag-mcp`, `03-agents` and `04-local-media`. Each has a `README.md`. The starter files are next to the `solution/` folder.
 
@@ -36,9 +44,9 @@ The workshop key stops working after the workshop. The code works with any OpenA
 | `GENAI_BASE_URL` | `https://<your-resource>.openai.azure.com/openai/v1` | `https://api.openai.com/v1` |
 | `GENAI_API_KEY` | key from the Azure portal (Keys and Endpoint) | your OpenAI key |
 | `GENAI_KEY_HEADER` | `api-key` | `Authorization` |
-| `GENAI_MODEL`, `GENAI_MODEL_2` | your **deployment names** | model names, e.g. `gpt-5-mini` |
+| `GENAI_MODEL`, `GENAI_MODEL_2` | your **deployment names** | model names, e.g. `gpt-5-nano` |
 | `GENAI_EMBED_MODEL`, `GENAI_IMAGE_MODEL`, `GENAI_TTS_MODEL` | your deployment names | `text-embedding-3-large`, `gpt-image-1-mini`, `gpt-4o-mini-tts` |
 
-Non-reasoning model (e.g. `gpt-4.1`)? Delete the `GENAI_REASONING_EFFORT` line. Local models (Ollama, LM Studio, Foundry Local) and every other option are explained in `.env.example`.
+Model rejects `reasoning_effort` (non-reasoning models, DeepSeek, grok)? Delete the `GENAI_REASONING_EFFORT` line. Local models (Ollama, LM Studio, Foundry Local) and every other option are explained in `.env.example`.
 
 **Important in a codespace:** a key entered on the "Create codespace" page wins over `labs/.env`. Remove it at github.com/settings/codespaces (Secrets), or run `unset GENAI_API_KEY` in your terminal (that terminal only), then run `python 00-setup/check_env.py` to confirm the new settings.

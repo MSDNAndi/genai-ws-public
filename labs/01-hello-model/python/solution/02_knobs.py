@@ -2,7 +2,7 @@
 
 Reasoning models (gpt-5 family, o-series, many "thinking" models) fix temperature/top_p at their defaults and use
 `reasoning_effort` instead. So this script asks the model first and falls back gracefully.
-Tip: run it once with GENAI_MODEL=gpt-5-mini and once with GENAI_MODEL=$GENAI_MODEL_2 (e.g. DeepSeek-V3.2) or Ollama.
+Tip: run it once with GENAI_MODEL=gpt-5-nano and once with GENAI_MODEL=$GENAI_MODEL_2 (e.g. DeepSeek-V4.1-Flash-1017) or Ollama.
 """
 import os
 import time

@@ -49,7 +49,7 @@ predictable; use LLM routing only when the path really depends on the content.
 Application Insights, Aspire or Langfuse by setting `OTEL_EXPORTER_OTLP_ENDPOINT` — no code change.
 
 ## Stretch
-- **Another brain, same agent.** Set `GENAI_MODEL` to your `GENAI_MODEL_2` (DeepSeek, Grok, Kimi …) or point
+- **Another brain, same agent.** Set `GENAI_MODEL` to your `GENAI_MODEL_2` (DeepSeek, Grok, Llama, gpt-oss …; delete `GENAI_REASONING_EFFORT` for DeepSeek and Grok) or point
   `GENAI_BASE_URL` at Ollama and re-run step 2. Which models call the tool, which guess?
 - **`06_langgraph.py`** — the same idea as an explicit graph: a checkpointer keeps state per `thread_id`, and a human
   approval step (`interrupt()` / `Command(resume=…)`) pauses the graph until you answer.
