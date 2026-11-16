@@ -72,7 +72,10 @@ Open the same link. GitHub offers your existing codespace: click **Resume** (eve
 Stop or delete the codespace at [github.com/codespaces](https://github.com/codespaces) so it doesn't use your free hours (a personal account includes plenty for this workshop). Want to keep going with your own Azure or OpenAI key? See "Your own endpoint" in [labs/START-HERE.md](../labs/START-HERE.md).
 
 **If something looks odd:**
-- A pop-up from the C# extension or a switch to the "Output" tab is harmless: click back to **Terminal**.
+- The panel jumped to **Output** (the C# extension's log)? Harmless. Click **···**, then **Terminal** (or press Ctrl + `):
+
+  ![Output tab: click ··· then Terminal](walkthrough/10-output-tab.jpg)
+
 - Some company GitHub accounts have Codespaces switched off; use a personal account.
 
 ## Videos
