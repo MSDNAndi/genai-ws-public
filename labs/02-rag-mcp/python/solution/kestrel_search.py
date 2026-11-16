@@ -38,8 +38,8 @@ class Index:
             # Fresh clone, step 2 never ran: build the index now (02_embed falls back to the prebuilt
             # chunks), so steps 3-6 also work on their own, e.g. straight from the demo menu.
             import subprocess, sys
-            print(f"{path.name} missing - building it first (02_embed.py) ...", flush=True)
-            subprocess.run([sys.executable, str(Path(__file__).with_name("02_embed.py"))], check=True)
+            print(f"{path.name} missing - building it first (02_embed.py) ...", file=sys.stderr, flush=True)   # stderr: stdout is the MCP protocol
+            subprocess.run([sys.executable, str(Path(__file__).with_name("02_embed.py"))], check=True, stdout=sys.stderr)
         if not path.exists():
             raise SystemExit(f"{path} not found - run 01_ingest.py and 02_embed.py first")
         data = json.loads(path.read_text(encoding="utf-8"))

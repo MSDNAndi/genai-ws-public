@@ -1,0 +1,15 @@
+{
+  // Workshop Segment 2 (slide 97): the Lab 2 MCP server, registered for GitHub Copilot Chat (agent mode).
+  // Open Copilot Chat -> Agent mode -> tools icon: "kestrel-docs" / search_docs. Same server as Inspector, zero code changes.
+  // Build the Lab 2 index once first (labs/try/SEGMENT-2.md, slide 97) - the first start is otherwise slow.
+  "servers": {
+    "kestrel-docs": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/labs/.venv/bin/python",
+      "args": ["${workspaceFolder}/labs/02-rag-mcp/python/solution/04_mcp_server.py"],
+      // stdio servers may start with a minimal environment: hand over the key from the codespace secret
+      // (the other settings come from labs/.env, which the server finds itself)
+      "env": { "GENAI_API_KEY": "${env:GENAI_API_KEY}" }
+    }
+  }
+}

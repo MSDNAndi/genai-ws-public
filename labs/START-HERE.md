@@ -2,6 +2,8 @@
 
 Everything is installed. The terminal below is already in `labs/`. Pick **one** language, copy its command (hover, then the copy icon), paste it into the terminal and press Enter.
 
+**Every demo from the talk, to try yourself:** [TRY-IT.md](TRY-IT.md) — one command per demo slide.
+
 **Even simpler:** open any lab file (`.py`, `.cs` or `.mjs`) and click **▶ Run Code** at the top right of the editor (or press Ctrl+Alt+N). It runs that file in the terminal, in every language.
 
 **Python**
