@@ -1,8 +1,12 @@
-"""Lab 4 · step 1 — your Lab 1 code, on your own machine. Same client, local base_url, and now we MEASURE:
-time to first token and tokens per second (streamed), plus whether the model can call a tool.
+"""Lab 4 · step 1 — your Lab 1 code, running on your own machine instead of the cloud.
 
-Runtimes are found from labs/.env: OLLAMA_BASE_URL, LMSTUDIO_BASE_URL, FOUNDRY_LOCAL_BASE_URL (Foundry Local picks a
-port at start-up: run `foundry service status` and copy the URL + /v1).
+What this shows: a local runtime (Ollama, LM Studio, Foundry Local) speaks the same OpenAI API, so only `base_url`
+changes. For each runtime we MEASURE two things: how fast it answers (time to first token, tokens per second) and
+whether the model can call a tool.
+What to notice: the first call also loads the model into memory, so it is slow; later calls are faster.
+
+Runtimes come from labs/.env: OLLAMA_BASE_URL, LMSTUDIO_BASE_URL, FOUNDRY_LOCAL_BASE_URL (Foundry Local picks a
+port at start-up: run `foundry service status` and copy the URL + /v1). Needs a local runtime - not in a codespace.
 """
 import json
 import os
@@ -12,28 +16,39 @@ from dotenv import find_dotenv, load_dotenv
 from pathlib import Path as _Path
 from openai import OpenAI
 
+# Load the settings file (labs/.env). Real environment variables win over the file.
 _here = _Path(globals().get("__file__", ".")).resolve()   # no __file__ in a notebook: start at the cwd
 for _folder in [*_here.parents, _Path.cwd(), *_Path.cwd().parents]:
     if (_folder / ".env").is_file():   # every .env from this file upward: the nearest one wins,
         load_dotenv(_folder / ".env")  # so labs/.env or one .env at the repo root both work
+
 EFFORT = os.getenv("OLLAMA_REASONING_EFFORT")          # "none" = skip the thinking phase of local reasoning models
+
+# Every runtime whose URL is set in labs/.env: (display name, base URL, preferred model)
 RUNTIMES = [(name, os.getenv(var), os.getenv(model_var, "")) for name, var, model_var in [
     ("Ollama", "OLLAMA_BASE_URL", "OLLAMA_MODEL"),
     ("LM Studio", "LMSTUDIO_BASE_URL", "LMSTUDIO_MODEL"),
     ("Foundry Local", "FOUNDRY_LOCAL_BASE_URL", "FOUNDRY_LOCAL_MODEL")] if os.getenv(var)]
+
+# The same tool definition as in Lab 1: we only check WHETHER the model asks for it, we never run it.
 TOOL = {"type": "function", "function": {"name": "get_weather", "description": "Current weather for a city.",
         "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}}}
 
 for name, base, model in RUNTIMES:
+    # Same OpenAI client as in Lab 1 - only base_url differs. Local servers ignore the key, but the client needs one.
     client = OpenAI(base_url=base, api_key="local", timeout=300, max_retries=0)
+
+    # 1. Which models does this runtime have? (also tells us whether it is running at all)
     try:
         available = [m.id for m in client.models.list().data]
     except Exception as e:
         print(f"\n== {name} at {base}: not reachable ({type(e).__name__})")
         continue
-    model = model if model in available else (available[0] if available else model)
+    model = model if model in available else (available[0] if available else model)   # fall back to the first model
     print(f"\n== {name} at {base}\n   models: {', '.join(available[:8])}{' ...' if len(available) > 8 else ''}\n   using:  {model}")
     extra = {"reasoning_effort": EFFORT} if EFFORT and name == "Ollama" else {}
+
+    # 2. Speed: stream the answer and time it. Each streamed chunk is roughly one token (a word piece).
     t0, first, pieces = time.perf_counter(), None, 0
     stream = client.chat.completions.create(model=model, stream=True, **extra, messages=[
         {"role": "user", "content": "Write three sentences about why developers run models locally."}])
@@ -41,13 +56,15 @@ for name, base, model in RUNTIMES:
     for chunk in stream:
         delta = chunk.choices[0].delta.content if chunk.choices else None
         if delta:
-            first = first or time.perf_counter()
+            first = first or time.perf_counter()   # remember when the FIRST token arrived
             pieces += 1
             text += delta
     total = time.perf_counter() - t0
-    gen = total - (first - t0) if first else 0
+    gen = total - (first - t0) if first else 0      # time spent generating, after the first token
     print(f"   first token after {(first - t0) if first else float('nan'):.1f}s · {pieces} chunks in {gen:.1f}s "
           f"(~{pieces / gen if gen else 0:.1f} tokens/s) · {text.strip()[:100]}...")
+
+    # 3. Tool calling: does this model ask for get_weather, or just answer in text?
     r = client.chat.completions.create(model=model, tools=[TOOL], **extra,
                                        messages=[{"role": "user", "content": "Weather in Heidelberg?"}])
     calls = r.choices[0].message.tool_calls or []

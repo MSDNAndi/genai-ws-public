@@ -1,11 +1,16 @@
 # STARTER - complete the TODO block(s). The finished version is in solution/06_chain.py
 """Lab 4 · step 6 — mix and match: the magic sauce is the pipeline. LLM -> image -> voice (-> ears), each block swappable.
 
+What this shows: steps 4 and 5 chained together, with a chat model in front. Each block is one switch on the command
+line, so you can swap ONE block per run and compare. What to notice: which block changes the result most, and which
+one is slow (seconds per block are printed and shown on every card).
+
 1. WRITER  a chat model writes an image prompt and a one-line narration (structured output, Lab 1)   --writer
 2. IMAGE   the cloud image model, or ComfyUI (--workflow ...), or skip it                              --image / --workflow
 3. VOICE   the narration is spoken (step 5's endpoint), with a voice and a speaking style            --voice / --tone
 4. EARS    (--check) a transcription model listens to the audio: did the words survive?             TODO 1
 Every run is kept: out/chain.html shows all runs side by side, newest first, with the recipe and timings of each.
+Images are limited to 3 per minute per key: wait between runs, or use --image skip.
 
     python 06_chain.py                                         # baseline: GENAI_MODEL + gpt-image-1-mini + alloy
     python 06_chain.py --writer grok-4-1-fast-non-reasoning    # swap ONE block, compare in out/chain.html
@@ -29,11 +34,13 @@ _here = _Path(globals().get("__file__", ".")).resolve()   # no __file__ in a not
 for _folder in [*_here.parents, _Path.cwd(), *_Path.cwd().parents]:
     if (_folder / ".env").is_file():   # every .env from this file upward: the nearest one wins,
         load_dotenv(_folder / ".env")  # so labs/.env or one .env at the repo root both work
+
+# One client for every cloud block (chat, image, speech, transcription): same endpoint, same key.
 KEY = os.environ["GENAI_API_KEY"]
 HEADERS = {"api-key": KEY} if os.getenv("GENAI_KEY_HEADER", "api-key") == "api-key" else None
 cloud = OpenAI(base_url=os.environ["GENAI_BASE_URL"], api_key=KEY, default_headers=HEADERS, timeout=300)
 
-# Every block is a knob: command line > environment variable (labs/.env) > default
+# The switches. Every block is a knob: command line > environment variable (labs/.env) > default
 ap = argparse.ArgumentParser(description="LLM -> image -> voice, each block swappable")
 ap.add_argument("--topic", default="a drone delivering the last parcel of the day")
 ap.add_argument("--writer", default=os.getenv("CHAIN_WRITER", os.getenv("GENAI_MODEL", "gpt-5-nano")),
@@ -51,20 +58,23 @@ ap.add_argument("--check", action="store_true", help="4th block: transcribe the 
 a = ap.parse_args()
 
 
+# The writer must return exactly these two fields (structured output, as in Lab 1).
 class Scene(BaseModel):
     image_prompt: str
     narration: str
 
 
 def reasoning_args(model: str) -> dict:
-    """reasoning_effort only for the models that understand it (gpt-5*, gpt-oss); others answer 400."""
+    """reasoning_effort only for the models that understand it (gpt-5*, gpt-oss); others answer 400.
+    (The workshop gateway also strips it for those models - this keeps your own endpoint working, too.)"""
     if re.match(r"(gpt-5|gpt-oss|o\d)", model, re.I):
         return {"reasoning_effort": os.getenv("GENAI_REASONING_EFFORT", "low")}
     return {}
 
 
 def write_scene(model: str) -> tuple[Scene, str]:
-    """Structured output first; models without json_schema support fall back to JSON mode, then to plain text."""
+    """Ask the writer model for a Scene. Not every vendor supports every feature, so we try three ways, best first:
+    1. structured output (the API enforces our two fields)  2. JSON mode (any valid JSON)  3. plain text with JSON in it."""
     system = ("You write a vivid image prompt (max 40 words) and a one-sentence narration (max 25 words) for the topic. "
               + (f"Style: {a.style}. " if a.style else ""))
     messages = [{"role": "system", "content": system}, {"role": "user", "content": a.topic}]
@@ -76,6 +86,7 @@ def write_scene(model: str) -> tuple[Scene, str]:
         if getattr(e, "status_code", 0) in (401, 403, 404, 429):
             raise   # wrong key / model not allowed / rate limit: a fallback will not help
         print(f"  ({model}: structured output failed - {type(e).__name__}; trying JSON mode)")
+    # Fallbacks 2 and 3: describe the JSON in the prompt instead, then pull the {...} out of the answer text.
     messages[0]["content"] += 'Answer ONLY with JSON: {"image_prompt": "...", "narration": "..."}'
     for mode in ({"response_format": {"type": "json_object"}}, {}):
         try:
@@ -90,13 +101,14 @@ def write_scene(model: str) -> tuple[Scene, str]:
     raise SystemExit(f"{model} could not produce the two fields ({type(last).__name__}). Try another --writer.")
 
 
+# --- the run: one "recipe" dict collects what each block did; it is saved as out/chain_<run>.json at the end ---------
 out = Path("out")
 out.mkdir(exist_ok=True)
 run_id = time.strftime("%Y%m%d-%H%M%S")
 recipe = {"run": run_id, "topic": a.topic, "writer": a.writer, "style": a.style, "timings_s": {}}
 t = time.perf_counter()
 
-# --- block 1: WRITER --------------------------------------------------------------------------------------------
+# --- block 1: WRITER - a chat model turns the topic into an image prompt + a narration ---------------------------
 try:
     scene, how = write_scene(a.writer)
 except OpenAIError as e:   # 403 = not one of the workshop's models: the message lists them
@@ -105,14 +117,14 @@ recipe["timings_s"]["writer"] = round(time.perf_counter() - t, 1)
 recipe.update(writer_mode=how, image_prompt=scene.image_prompt, narration=scene.narration)
 print(f"[writer] {a.writer} ({how}, {recipe['timings_s']['writer']}s)\n  image prompt: {scene.image_prompt}"
       f"\n  narration:    {scene.narration}")
-if a.writer_only:
+if a.writer_only:          # --writer-only: compare writers without spending image or voice quota
     raise SystemExit(0)
 
-# --- block 2: IMAGE ---------------------------------------------------------------------------------------------
+# --- block 2: IMAGE - ComfyUI (--workflow), the cloud image model (step 4), or nothing (--image skip) -------------
 t = time.perf_counter()
 image_file = None
 if a.workflow:
-    import comfy
+    import comfy   # only needed for the ComfyUI path; seed fixed at 42 so reruns are comparable
     recipe["image"] = f"ComfyUI {Path(a.workflow).name} seed 42"
     src = comfy.run(comfy.patch(comfy.load(a.workflow), prompt=scene.image_prompt, seed=42), out)[0]
     image_file = out / f"chain_{run_id}{src.suffix}"
@@ -131,7 +143,7 @@ else:
 recipe["timings_s"]["image"] = round(time.perf_counter() - t, 1)
 print(f"[image]  {recipe['image']} ({recipe['timings_s']['image']}s) -> {image_file or '-'}")
 
-# --- block 3: VOICE ---------------------------------------------------------------------------------------------
+# --- block 3: VOICE - the narration is spoken (step 5) ---------------------------------------------------------
 t = time.perf_counter()
 audio_file = out / f"chain_{run_id}.wav"
 speech = {"model": a.tts_model, "voice": a.voice, "input": scene.narration, "response_format": "wav"}
@@ -143,7 +155,7 @@ recipe.update(voice=f"{a.tts_model} / {a.voice}" + (f" / {a.tone}" if a.tone els
 recipe["timings_s"]["voice"] = round(time.perf_counter() - t, 1)
 print(f"[voice]  {recipe['voice']} ({recipe['timings_s']['voice']}s) -> {audio_file}")
 
-# --- block 4 (optional): EARS - close the loop with a 4th modality -----------------------------------------------
+# --- block 4 (optional, --check): EARS - a transcription model (speech to text) listens back --------------------
 if a.check:
     t = time.perf_counter()
     try:
@@ -153,17 +165,18 @@ if a.check:
         print(f"[ears]   transcription failed ({getattr(e, 'status_code', type(e).__name__)}) - skipping the check")
     else:
         recipe["timings_s"]["ears"] = round(time.perf_counter() - t, 1)
+        # simple test: how many of the written words were heard again?
         said, heard = (re.findall(r"[a-z0-9']+", s.lower()) for s in (scene.narration, recipe["heard"]))
         recipe["words_match"] = f"{sum(w in heard for w in said)}/{len(said)}"
         print(f"[ears]   heard: {recipe['heard']}  ({recipe['words_match']} words, {recipe['timings_s']['ears']}s)")
 
-# --- the gallery: every run side by side, newest first -----------------------------------------------------------
+# --- the gallery: save this run's recipe, then rebuild out/chain.html from ALL saved recipes, newest first --------
 recipe.update(image_file=image_file.name if image_file else None, audio_file=audio_file.name)
 (out / f"chain_{run_id}.json").write_text(json.dumps(recipe, indent=2), encoding="utf-8")
 cards = []
 for p in sorted(out.glob("chain_*.json"), reverse=True):
     r = json.loads(p.read_text(encoding="utf-8"))
-    e = lambda k: html.escape(str(r.get(k) or "-"))   # noqa: E731
+    e = lambda k: html.escape(str(r.get(k) or "-"))   # noqa: E731   (escape: model text must not break the HTML)
     img = f'<img src="{e("image_file")}">' if r.get("image_file") else '<div class="noimg">no image</div>'
     heard = f'<p class="k">heard: {e("heard")} ({e("words_match")} words)</p>' if r.get("heard") else ""
     cards.append(f"""<div class="card">{img}<p class="n">{e("narration")}</p>

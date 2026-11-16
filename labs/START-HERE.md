@@ -1,6 +1,6 @@
 # Start here
 
-Everything is installed. The terminal below is already in `labs/`. Pick one language, copy its command (hover, then the copy icon), paste it into the terminal and press Enter.
+Everything is installed. The terminal below is already in `labs/`. Pick **one** language, copy its command (hover, then the copy icon), paste it into the terminal and press Enter.
 
 **Python**
 ```bash
@@ -17,27 +17,41 @@ dotnet run --file 01-hello-model/csharp/solution/01_hello.cs
 node 01-hello-model/typescript/solution/01_hello.mjs
 ```
 
-You should see a model answer within a few seconds.
+You should see a model answer within a few seconds. That's it — you're ready.
 
-**It says the key is missing, or you get a 401:** open `labs/.env`, add the line `GENAI_API_KEY=<the key from your card>`, save, and run the command again.
+**Key missing, or a 401?** Open `labs/.env`, add the line `GENAI_API_KEY=<the key from your card>`, save, run the command again.
 
-**Try another model:** in `labs/.env`, change `GENAI_MODEL=gpt-5-nano` to one of these (same key, all cheap; the workshop gateway refuses anything else):
+## The labs
+
+`01-hello-model`, `02-rag-mcp`, `03-agents`, `04-local-media` — each folder has a `README.md`. You edit the starter files; the finished versions are in the `solution/` folder next to them.
+
+## Try another model
+
+In `labs/.env`, change `GENAI_MODEL=gpt-5-nano` to one of these. Nothing else to change — same key.
 
 | Model | Vendor | Note |
 |---|---|---|
-| `gpt-5-nano` (default), `gpt-5-mini` | OpenAI | reasoning models: keep `GENAI_REASONING_EFFORT=low` |
-| `gpt-oss-120b` | OpenAI, open weights | the same model you can run locally |
-| `DeepSeek-V4.1-Flash-1017` | DeepSeek | delete the `GENAI_REASONING_EFFORT` line |
-| `grok-4-1-fast-non-reasoning` | xAI | delete the `GENAI_REASONING_EFFORT` line |
-| `Llama-4-Maverick-17B-128E-Instruct-FP8` | Meta | |
+| `gpt-5-nano` | OpenAI | default |
+| `gpt-5-mini` | OpenAI | smarter |
+| `gpt-4o-mini` | OpenAI | classic |
+| `gpt-oss-120b` | OpenAI | open-weights |
+| `DeepSeek-V4.1-Flash-1017` | DeepSeek | fast |
+| `grok-4-1-fast-non-reasoning` | xAI | fast |
+| `Llama-4-Maverick-17B-128E-Instruct-FP8` | Meta | open-weights |
 
-**The labs:** `01-hello-model`, `02-rag-mcp`, `03-agents` and `04-local-media`. Each has a `README.md`. The starter files are next to the `solution/` folder.
+**Edited `labs/.env` and nothing changed?** An environment variable with the same name wins over the file.
+`python 00-setup/settings.py` shows where each setting comes from; `source 00-setup/use-dotenv.sh` makes this terminal use `labs/.env`.
+Details: `00-setup/SETUP.md`.
 
-**When you're done:** stop the codespace at github.com/codespaces, so it doesn't use up your free hours.
+## When you're done
 
-## Your own endpoint (after the workshop, or instead of the workshop key)
+Stop the codespace at [github.com/codespaces](https://github.com/codespaces), so it doesn't use up your free hours.
 
-The workshop key stops working after the workshop. The code works with any OpenAI-compatible endpoint, but a key alone is not enough: the endpoint URL, how the key is sent, and the model (on Azure: deployment) names all change. Edit these lines in `labs/.env`:
+---
+
+## After the workshop: your own endpoint
+
+The workshop key stops working after today. The code works with any OpenAI-compatible endpoint, but more than the key changes. Edit these lines in `labs/.env`:
 
 | Setting | Azure AI Foundry / Azure OpenAI | OpenAI |
 |---|---|---|
@@ -47,6 +61,4 @@ The workshop key stops working after the workshop. The code works with any OpenA
 | `GENAI_MODEL`, `GENAI_MODEL_2` | your **deployment names** | model names, e.g. `gpt-5-nano` |
 | `GENAI_EMBED_MODEL`, `GENAI_IMAGE_MODEL`, `GENAI_TTS_MODEL` | your deployment names | `text-embedding-3-large`, `gpt-image-1-mini`, `gpt-4o-mini-tts` |
 
-Model rejects `reasoning_effort` (non-reasoning models, DeepSeek, grok)? Delete the `GENAI_REASONING_EFFORT` line (DeepSeek also accepts `none`). Local models (Ollama, LM Studio, Foundry Local) and every other option are explained in `.env.example`.
-
-**Important: environment variables win over `labs/.env`.** The key from the "Create codespace" page is one. `python 00-setup/settings.py` shows every setting and where it comes from; `source 00-setup/use-dotenv.sh` drops them for this terminal so `labs/.env` is used. To get rid of the codespace secret for good, remove it at github.com/settings/codespaces (Secrets) and restart the codespace. Then run `python 00-setup/check_env.py` to confirm.
+On your own endpoint (or a local model), a model that rejects `reasoning_effort` needs the `GENAI_REASONING_EFFORT` line deleted. Local models (Ollama, LM Studio, Foundry Local) and every other option: `.env.example` and `00-setup/SETUP.md`.

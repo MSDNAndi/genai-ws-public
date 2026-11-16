@@ -4,11 +4,13 @@ No installs. You need a browser, a free GitHub account and the workshop key from
 
 **Start here:** [codespaces.new/msdnAndi/genai-ws-public?quickstart=1](https://codespaces.new/msdnAndi/genai-ws-public?quickstart=1)
 
+**In short:** open the link → paste your key → wait → run one command. The pictures below show each step.
+
 ---
 
 ## 1. Create the codespace and paste your key
 
-Sign in to GitHub if asked. Leave Branch, Region and Machine type as they are.
+Sign in to GitHub if asked. Leave everything else on the page as it is.
 
 ![Create codespace page](walkthrough/01-create-top.jpg)
 
@@ -19,7 +21,7 @@ Scroll down to **Recommended secrets → GENAI_API_KEY**, paste the key from you
 
 ## 2. Wait while it builds (2–5 minutes)
 
-VS Code opens in your browser and shows "Opening Remote…" / "Building codespace…" in the bottom-left corner. Python, C#, TypeScript and every lab package are being installed for you.
+VS Code opens in your browser and shows "Opening Remote…" / "Building codespace…" in the bottom-left corner. Everything is being installed for you; there is nothing to do.
 
 ![VS Code opening the codespace](walkthrough/03-opening.jpg)
 
@@ -35,11 +37,11 @@ A terminal shows the lab environment check. All green and `All set` means: your 
 
 ![All checks green](walkthrough/05-green-check.jpg)
 
-Red instead? The line tells you what to fix. The usual one: no key. Open `labs/.env`, add `GENAI_API_KEY=<the key from your card>`, save, and run `python 00-setup/check_env.py` again.
+Red instead? The line tells you what to fix. Usually it's the key: open `labs/.env`, add `GENAI_API_KEY=<the key from your card>`, save, and run `python 00-setup/check_env.py` again.
 
-## 5. Run your first lab
+## 5. Run one command
 
-`labs/START-HERE.md` opens by itself (if not: click it in the Explorer on the left, under `labs`). It has one command per language: hover over a command, click the copy icon, paste it into the terminal and press Enter.
+`labs/START-HERE.md` opens by itself (if not: click it in the Explorer on the left, under `labs`). Pick one language: hover over its command, click the copy icon, paste it into the terminal and press Enter.
 
 ![START-HERE.md](walkthrough/05b-start-here.jpg)
 
@@ -69,7 +71,7 @@ Open the same link. GitHub offers your existing codespace: click **Resume** (eve
 
 Stop or delete the codespace at [github.com/codespaces](https://github.com/codespaces) so it doesn't use your free hours (a personal account includes plenty for this workshop). Want to keep going with your own Azure or OpenAI key? See "Your own endpoint" in [labs/START-HERE.md](../labs/START-HERE.md).
 
-**Notes:**
+**If something looks odd:**
 - A pop-up from the C# extension or a switch to the "Output" tab is harmless: click back to **Terminal**.
 - Some company GitHub accounts have Codespaces switched off; use a personal account.
 

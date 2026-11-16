@@ -40,8 +40,8 @@ talk) are already saved in ComfyUI's *API format* — the format code can run; f
 `python 02_comfy_run.py ../comfyui_workflows/01_txt2img_sdxl.json --prompt "a lighthouse in fog, 35 mm photo" --seed 42`.
 Every image gets a `.json` next to it with the exact settings. *Craft principle #1: log the seed.*
 
-**3 · One knob — `03_one_knob.py` · TODO 1.** `--knob cfg --values 1.5 3 5 8 --seed 42` renders the same seed with
-four CFG values; you build the contact sheet. Then try `--knob steps` and `--knob seed`.
+**3 · One knob — `03_one_knob.py` · TODO 1.** `--knob cfg --values 1.5 3 5 8 --seed 42` renders the same seed (the
+random starting noise) with four CFG values (how strictly the image follows the prompt); you build the contact sheet. Then try `--knob steps` and `--knob seed`.
 *Craft principle #2: change one thing at a time.*
 More graphs from the talk for later: `02_pose_lora_sdxl.json` (pose ControlNet + a character LoRA; needs the
 comfyui_controlnet_aux nodes), `03_inpaint.json`, `04_upscale_model.json` (4x-UltraSharp) and `05_image_to_3d.json`

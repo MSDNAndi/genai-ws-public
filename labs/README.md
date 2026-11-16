@@ -1,5 +1,8 @@
 # Building Stuff with GenAI — labs
 
+**In a GitHub Codespace today?** Open [`START-HERE.md`](START-HERE.md) — nothing to install or configure. The rest of
+this page is background.
+
 Four hands-on labs for the day, each in **Python**, **C#** (.NET 10 single-file apps) and **TypeScript** (Node 22+,
 plain ES modules) — Lab 4 is Python-first. Every lab has a core that everyone finishes and stretch goals for
 the fast ones. All labs talk to models through the same OpenAI-compatible client, configured in one file: `labs/.env`.

@@ -101,7 +101,7 @@ try:
 except Exception as e:  # the first call decides whether the rest makes sense
     report("fail", "chat call failed", hint(e))
     if "reasoning_effort" in str(e):
-        print("     This model rejects reasoning_effort - remove GENAI_REASONING_EFFORT from labs/.env")
+        print("     This model rejects reasoning_effort (local model / own endpoint) - remove GENAI_REASONING_EFFORT from labs/.env")
     sys.exit(1)
 
 try:
