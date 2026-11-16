@@ -10,3 +10,9 @@ obj/
 build/
 out/
 .ipynb_checkpoints/
+
+# never commit secrets: every *.env except the templates
+*.env
+!.env.example
+!**/.env.example
+!.devcontainer/workshop.env
