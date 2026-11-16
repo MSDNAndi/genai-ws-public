@@ -16,6 +16,7 @@ The agents always start the *finished* Lab 2 server, so an unfinished Lab 2 star
 | 3 researcher → writer | `03_workflow.py` · TODO 1 | `03_workflow.cs` · TODO 1 | `03_workflow.mjs` · TODO 1 |
 | 4 + critic | `04_critic.py` · TODO 2 | `04_critic.cs` · TODO 2 | `04_critic.mjs` · TODO 2 |
 | 5 tracing | `05_tracing.py` · TODO 3 | `05_tracing.cs` · TODO 3 | — |
+| stretch: team of 4 vendors | `08_team.py` · TODO 1–2 | `08_team.cs` · TODO 1–2 | |
 | stretch | `06_langgraph.py`, `07_devui.py` | | |
 
 ## Steps
@@ -49,6 +50,20 @@ predictable; use LLM routing only when the path really depends on the content.
 Application Insights, Aspire or Langfuse by setting `OTEL_EXPORTER_OTLP_ENDPOINT` — no code change.
 
 ## Stretch
+- **A team on four vendors' models — `08_team` · TODO 1–2.** This morning's incident (a K-7 Heron overloaded in the
+  rain) goes to a small team: a **lead** (gpt-5-nano) splits the job, a **policy analyst** (DeepSeek, with the docs
+  tool) and a **comms writer** (Llama, no tool — on purpose) work **at the same time**, a **fact-checker** (Grok, with
+  the docs tool) holds the customer draft against the docs, and the lead merges the incident review.
+  TODO 1: write the fact-checker's job description. TODO 2: run the two specialists concurrently
+  (Python: `ConcurrentBuilder(...).with_aggregator(...)`; C#: start both runs, then `Task.WhenAll`).
+  Run: `python 08_team.py` / `dotnet run --file 08_team.cs` (~40–60 s, about 6–10k tokens, well under 1 cent).
+  Same client class, same endpoint, four vendors: only the model name changes. Swap any of them with
+  `TEAM_LEAD_MODEL`, `TEAM_POLICY_MODEL`, `TEAM_COMMS_MODEL`, `TEAM_CHECKER_MODEL` (e.g. `TEAM_COMMS_MODEL=gpt-4o-mini`).
+  `reasoning_effort` is sent only to gpt-5 / gpt-oss models (DeepSeek and Grok reject it).
+  *Checkpoint:* the table at the end (agent · model · seconds · tokens). Who is the expensive one, and why? (The agent
+  with the tool reads the search results: input tokens.) Now read the policy notes: is the replacement at 09:05 late
+  (window ends 08:00, refund after +20 min)? Some runs say "no" — and the checker and the lead happily agree.
+  Agreement between agents is not correctness: give arithmetic to a tool, or a checker a different job than the author.
 - **Another brain, same agent.** Set `GENAI_MODEL` to your `GENAI_MODEL_2` (DeepSeek, Grok, Llama, gpt-oss …; delete `GENAI_REASONING_EFFORT` for DeepSeek and Grok) or point
   `GENAI_BASE_URL` at Ollama and re-run step 2. Which models call the tool, which guess?
 - **`06_langgraph.py`** — the same idea as an explicit graph: a checkpointer keeps state per `thread_id`, and a human
