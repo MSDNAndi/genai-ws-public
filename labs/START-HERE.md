@@ -49,4 +49,4 @@ The workshop key stops working after the workshop. The code works with any OpenA
 
 Model rejects `reasoning_effort` (non-reasoning models, DeepSeek, grok)? Delete the `GENAI_REASONING_EFFORT` line. Local models (Ollama, LM Studio, Foundry Local) and every other option are explained in `.env.example`.
 
-**Important in a codespace:** a key entered on the "Create codespace" page wins over `labs/.env`. Remove it at github.com/settings/codespaces (Secrets), or run `unset GENAI_API_KEY` in your terminal (that terminal only), then run `python 00-setup/check_env.py` to confirm the new settings.
+**Important: environment variables win over `labs/.env`.** The key from the "Create codespace" page is one. `python 00-setup/settings.py` shows every setting and where it comes from; `source 00-setup/use-dotenv.sh` drops them for this terminal so `labs/.env` is used. To get rid of the codespace secret for good, remove it at github.com/settings/codespaces (Secrets) and restart the codespace. Then run `python 00-setup/check_env.py` to confirm.

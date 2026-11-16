@@ -92,11 +92,27 @@ dotnet run --file 00-setup/check_env.cs            # C# track
 node 00-setup/check_env.mjs                        # TypeScript track
 ```
 All green (✅) = you are ready. ⚠️ is fine (e.g. "labs/.env not found" when you use environment variables instead).
+Edits to `.env` seem ignored? An environment variable wins — see "Where do the settings come from?" below.
 On the day you replace the first lines of `.env` with the values from your handout card and run the checker again.
+
+## Where do the settings come from? Environment variables beat `labs/.env`
+Every lab (Python, C#, TypeScript) reads `labs/.env`, **but a real environment variable with the same name wins**.
+That is on purpose (a Codespaces secret, CI or your shell can set the key without touching files), and it is the #1
+reason for "I edited `.env` and nothing changed". See what is actually used and where it comes from:
+```bash
+python 00-setup/settings.py
+```
+Back to `labs/.env` (drops all `GENAI_*`, `OLLAMA_*`, … variables):
+| Where | Command |
+|---|---|
+| bash / zsh / Codespaces terminal | `source 00-setup/use-dotenv.sh` (this terminal) |
+| Windows PowerShell | `. .\00-setup\use-dotenv.ps1` (this window) · add `-Persist` to also remove them from your Windows user profile, then restart VS Code |
+| Codespaces secret (`GENAI_API_KEY` from the "Create codespace" page) | comes back in every new terminal: remove it at github.com/settings/codespaces → Secrets, then restart the codespace |
 
 ## Troubleshooting
 | Symptom | Fix |
 |---|---|
+| I changed `labs/.env` but nothing changed | an environment variable wins: `python 00-setup/settings.py` shows which, `source 00-setup/use-dotenv.sh` (PowerShell: `. .\00-setup\use-dotenv.ps1`) removes them |
 | `401` / "Access denied due to missing subscription key" | key missing or mistyped; keep `GENAI_KEY_HEADER=api-key` |
 | `404` / "DeploymentNotFound" | model name not deployed on the endpoint, or `GENAI_BASE_URL` does not end in `/openai/v1` (`/v1` for local servers) |
 | `429` | your per-minute token limit — wait a minute, then retry |
