@@ -1,0 +1,13 @@
+# A2A Bazaar server + orchestrator. Pinned to the versions verified 2026-11-16 next to labs/requirements.txt
+# (agent-framework-core 1.19.0). Do NOT bump agent-framework-a2a: from 1.0.0b261015 it needs core >= 1.22.
+# client.py needs none of this (stdlib only).
+openai==3.18.0
+agent-framework-core==1.19.0
+agent-framework-openai==1.14.4
+agent-framework-a2a==1.0.0b260918
+a2a-sdk==1.1.5
+uvicorn==0.53.0
+starlette==1.6.0
+sse-starlette==3.4.11
+httpx>=0.28,<1
+python-dotenv==1.2.3
