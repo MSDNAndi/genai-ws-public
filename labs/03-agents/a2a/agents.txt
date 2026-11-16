@@ -1,0 +1,2 @@
+# A2A Bazaar: one agent URL per line (anything else on a line is ignored, so "Ana: https://..." is fine).
+# Attendees: paste the "public:" URL that a2a_agent.py printed. Instructor: python bazaar.py
