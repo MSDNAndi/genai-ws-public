@@ -70,3 +70,20 @@ Stop or delete the codespace at [github.com/codespaces](https://github.com/codes
 **Notes:**
 - A pop-up from the C# extension or a switch to the "Output" tab is harmless: click back to **Terminal**.
 - Some company GitHub accounts have Codespaces switched off; use a personal account.
+
+## Videos
+
+Want to see what a working run looks like before you start? Short recordings of every lab are in
+[recordings/](recordings/README.md). The [overview video](recordings/overview.mp4) shows all of them in about 4.5 minutes.
+
+Setup check (`python 00-setup/check_env.py`):
+
+![check_env: 8 green ticks](recordings/00_check_env.gif)
+
+First call in Python, C# and TypeScript:
+
+![01_hello in Python](recordings/01_hello_python.gif)
+
+![01_hello in C#](recordings/01_hello_csharp.gif)
+
+![01_hello in TypeScript](recordings/01_hello_typescript.gif)
