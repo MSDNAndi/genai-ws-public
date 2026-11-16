@@ -18,8 +18,14 @@ def next_speaker(state) -> str:
     # <<< TODO
 
 
+APPROVED = []   # set by the termination check: the run outputs only hold the writer turns (output_from=[writer])
+
+
 def critic_approved(conversation) -> bool:
-    return any("APPROVED" in (m.text or "") for m in conversation if m.author_name == "critic")
+    ok = any("APPROVED" in (m.text or "") for m in conversation if m.author_name == "critic")
+    if ok:
+        APPROVED.append(True)
+    return ok
 
 
 async def main() -> None:
@@ -40,8 +46,7 @@ async def main() -> None:
         drafts = [o for o in result.get_outputs() if o.messages and o.messages[-1].author_name == "writer"]
         for n, draft in enumerate(drafts, 1):
             print(f"--- draft {n}:\n{draft.text.strip()}\n")
-        print("Critic approved." if critic_approved([m for o in result.get_outputs() for m in o.messages])
-              else "Stopped by the round limit.")
+        print("Critic approved." if APPROVED else "Stopped by the round limit.")
 
 
 asyncio.run(main())

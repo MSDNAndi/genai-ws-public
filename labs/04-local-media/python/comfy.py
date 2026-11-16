@@ -59,6 +59,11 @@ def run(wf: dict, out_dir: str | Path, base: str | None = None, timeout: float =
     base = (base or os.getenv("COMFYUI_URL", "http://127.0.0.1:8188")).rstrip("/")
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        httpx.get(base + "/system_stats", timeout=5).raise_for_status()
+    except httpx.HTTPError:
+        raise SystemExit(f"ComfyUI is not reachable at {base}. No GPU / in a codespace? Start the stand-in in a second "
+                         f"terminal:  python _tools/comfy_mock.py 8188  from labs/  (or skip to step 4, the cloud path).")
     with httpx.Client(base_url=base, timeout=60) as http:
         prompt_id = http.post("/prompt", json={"prompt": wf, "client_id": uuid.uuid4().hex}).raise_for_status().json()["prompt_id"]
         deadline = time.time() + timeout

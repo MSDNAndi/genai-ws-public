@@ -24,6 +24,14 @@
     "DOTNET_NOLOGO": "1"
   },
 
+  // Web UIs from the labs open in a browser tab automatically (Ports tab shows them too)
+  "portsAttributes": {
+    "8090": { "label": "Lab 3 DevUI", "onAutoForward": "openBrowser" },
+    "6274": { "label": "MCP Inspector (Lab 2)", "onAutoForward": "openBrowser" },
+    "6277": { "label": "MCP Inspector proxy", "onAutoForward": "silent" },
+    "8188": { "label": "ComfyUI / stand-in (Lab 4)", "onAutoForward": "silent" }
+  },
+
   "onCreateCommand": "bash .devcontainer/on-create.sh",
   "postAttachCommand": "bash .devcontainer/welcome.sh",
 

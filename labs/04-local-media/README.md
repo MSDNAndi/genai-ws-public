@@ -7,6 +7,10 @@ also against Ollama 0.34.3 (2026-09-22) · not yet: a real ComfyUI on a GPU, the
 craftsperson does — log the seed, change one knob at a time, keep the pipeline, swap the model. No GPU? Every step
 has a cloud path through the same OpenAI-compatible client.
 
+**In a codespace (no GPU, no Ollama):** do steps 4–5 and the stretch — they use the workshop endpoint. For steps 2–3
+start the ComfyUI stand-in in a second terminal (`python _tools/comfy_mock.py 8188` from `labs/`). Step 1 needs a local
+runtime on your own machine; watch it in the instructor demo. Images are limited to 3 per minute per key.
+
 Python only (the media tooling of 2026 is Python-first); the local-model step works in any language because it is
 just Lab 1 with a different `base_url`.
 

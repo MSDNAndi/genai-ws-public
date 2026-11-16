@@ -12,4 +12,9 @@ if [ -z "${GENAI_API_KEY:-}" ] && ! grep -q '^GENAI_API_KEY=.\+' .env 2>/dev/nul
   echo "     then run:  python 00-setup/check_env.py"
   exit 0
 fi
+# MCP hosts (Inspector, Copilot's mcp.json) start the lab servers WITHOUT the codespace secret: give them the key via
+# labs/.env too (git-ignored, stays inside this codespace). Only when .env has no key yet.
+if [ -n "${GENAI_API_KEY:-}" ] && ! grep -q '^GENAI_API_KEY=.\+' .env 2>/dev/null; then
+  printf '\n# copied from the codespace secret, so MCP hosts see it too\nGENAI_API_KEY=%s\n' "$GENAI_API_KEY" >> .env
+fi
 python 00-setup/check_env.py || true
