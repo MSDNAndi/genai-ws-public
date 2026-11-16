@@ -6,7 +6,7 @@ echo "  Building Stuff with GenAI — your lab environment"
 echo "  Python, C# and TypeScript are installed. Start with labs/START-HERE.md"
 echo
 if [ -z "${GENAI_API_KEY:-}" ] && ! grep -q '^GENAI_API_KEY=.\+' .env 2>/dev/null; then
-  echo "  ⚠  No workshop key yet. Open labs/.env and add:  GENAI_API_KEY=<the key from the slide>"
+  echo "  ⚠  No workshop key yet. Open labs/.env and add:  GENAI_API_KEY=<the key from your card>"
   echo "     then run:  python 00-setup/check_env.py"
   exit 0
 fi

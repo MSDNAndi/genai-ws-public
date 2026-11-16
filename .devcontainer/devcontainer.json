@@ -13,7 +13,7 @@
   // It arrives as an environment variable, and every lab lets environment variables win over labs/.env.
   "secrets": {
     "GENAI_API_KEY": {
-      "description": "The workshop key shown on the slide (or your own key for any OpenAI-compatible endpoint)."
+      "description": "The workshop key from your card. Using your own endpoint instead? Leave this empty and see labs/START-HERE.md."
     }
   },
 
