@@ -11,6 +11,9 @@
 // span, so for the lab we plug in a tiny exporter that prints one line per span instead. In production you point the
 // same spans at Application Insights, Aspire, Jaeger or Langfuse (.AddOtlpExporter() + OTEL_EXPORTER_OTLP_ENDPOINT) —
 // no change to the agent code.
+//
+// Span = one timed step (an agent run, a model call, a tool call). What to notice: invoke_agent -> chat -> execute_tool
+// -> chat is the tool loop from step 1, now with timings and token counts.
 using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.ComponentModel;
@@ -24,6 +27,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 #pragma warning disable OPENAI001 // ReasoningEffortLevel is still marked "experimental" in the OpenAI .NET SDK 2.13
 
+// --- setup, the same in every Lab 3 file: find labs/, load labs/.env, connect to the model ---
 var labs = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? Directory.GetCurrentDirectory();
 while (!File.Exists(Path.Combine(labs, "_tools", "make_starters.py")))    // walk up to the labs/ root
     labs = Path.GetDirectoryName(labs) ?? throw new DirectoryNotFoundException("labs/_tools not found above this file");
@@ -37,8 +41,8 @@ string key = Env("GENAI_API_KEY"), effort = Env("GENAI_REASONING_EFFORT", "");
 var clientOptions = new OpenAIClientOptions { Endpoint = new Uri(Env("GENAI_BASE_URL")) };
 if ((Environment.GetEnvironmentVariable("GENAI_KEY_HEADER") ?? "api-key") == "api-key")
     clientOptions.AddPolicy(new HeaderPolicy("api-key", key), PipelinePosition.PerCall);
-// One chat client for all agents. GENAI_REASONING_EFFORT rides along on every request (low for gpt-5 models, none for
-// local thinking models): RawRepresentationFactory hands the OpenAI SDK its own request options with the effort set.
+// One chat client for all agents. GENAI_REASONING_EFFORT ("low" for gpt-5 models) rides along on every request; the
+// gateway drops it for models that do not support it. RawRepresentationFactory = the OpenAI SDK's own request options.
 IChatClient chatClient = new OpenAIClient(new ApiKeyCredential(key), clientOptions)
     .GetChatClient(Env("GENAI_MODEL")).AsIChatClient()
     .AsBuilder()
@@ -47,6 +51,7 @@ IChatClient chatClient = new OpenAIClient(new ApiKeyCredential(key), clientOptio
         if (effort != "") o.RawRepresentationFactory ??= _ => new ChatCompletionOptions { ReasoningEffortLevel = new(effort) };
     })
     .Build();
+// --- end of setup ---
 
 [Description("Current weather for a city.")]
 object GetWeather(string city) => new { city, temp_c = 22, sky = "sunny" };

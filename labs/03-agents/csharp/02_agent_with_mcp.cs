@@ -3,6 +3,9 @@
 #:package DotNetEnv@3.2.0
 #:property PublishAot=false
 // Lab 3 · step 2 — give the agent the Lab 2 documents through MCP. No adapter code: an MCP server IS a tool source.
+//
+// The same agent as step 1, but its tool now comes from your Lab 2 MCP server (search_docs). What to notice: the
+// answers cite chunk ids - and can still be wrong. Tools make an answer checkable, not automatically correct.
 using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Diagnostics;
@@ -13,6 +16,7 @@ using OpenAI;
 using OpenAI.Chat;
 #pragma warning disable OPENAI001 // ReasoningEffortLevel is still marked "experimental" in the OpenAI .NET SDK 2.13
 
+// --- setup, the same in every Lab 3 file: find labs/, load labs/.env, connect to the model ---
 var labs = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? Directory.GetCurrentDirectory();
 while (!File.Exists(Path.Combine(labs, "_tools", "make_starters.py")))    // walk up to the labs/ root
     labs = Path.GetDirectoryName(labs) ?? throw new DirectoryNotFoundException("labs/_tools not found above this file");
@@ -26,8 +30,8 @@ string key = Env("GENAI_API_KEY"), effort = Env("GENAI_REASONING_EFFORT", "");
 var clientOptions = new OpenAIClientOptions { Endpoint = new Uri(Env("GENAI_BASE_URL")) };
 if ((Environment.GetEnvironmentVariable("GENAI_KEY_HEADER") ?? "api-key") == "api-key")
     clientOptions.AddPolicy(new HeaderPolicy("api-key", key), PipelinePosition.PerCall);
-// One chat client for all agents. GENAI_REASONING_EFFORT rides along on every request (low for gpt-5 models, none for
-// local thinking models): RawRepresentationFactory hands the OpenAI SDK its own request options with the effort set.
+// One chat client for all agents. GENAI_REASONING_EFFORT ("low" for gpt-5 models) rides along on every request; the
+// gateway drops it for models that do not support it. RawRepresentationFactory = the OpenAI SDK's own request options.
 IChatClient chatClient = new OpenAIClient(new ApiKeyCredential(key), clientOptions)
     .GetChatClient(Env("GENAI_MODEL")).AsIChatClient()
     .AsBuilder()
@@ -36,8 +40,10 @@ IChatClient chatClient = new OpenAIClient(new ApiKeyCredential(key), clientOptio
         if (effort != "") o.RawRepresentationFactory ??= _ => new ChatCompletionOptions { ReasoningEffortLevel = new(effort) };
     })
     .Build();
+// --- end of setup ---
 
 // The Lab 2 MCP server — always the finished C# one — started as a child process over stdio.
+// McpClient = our side of the MCP connection; ListToolsAsync() asks the server which tools it has.
 string server = Path.Combine(labs, "02-rag-mcp", "csharp", "solution", "04_mcp_server.cs");
 if (!File.Exists(Path.Combine(labs, "02-rag-mcp", "build", "index.json")))
     throw new FileNotFoundException("The Lab 2 index is missing - run labs/02-rag-mcp/csharp/solution/02_embed.cs first.");
@@ -56,14 +62,14 @@ IList<McpClientTool> docsTools = await docs.ListToolsAsync();   // McpClientTool
 
 AIAgent agent = chatClient.AsAIAgent(
     name: "KestrelSupport",
-    tools: [.. docsTools],
+    tools: [.. docsTools],                         // every tool of the MCP server; the instructions say when to use it
     instructions: "You answer questions about Kestrel Drone Logistics. Always call search_docs first and cite the chunk ids " +
                   "you used, like (kestrel_operations_handbook#2). If the documents do not answer the question, say so.");
 
 foreach (string question in new[] { "Can I fly a K-2 Sparrow at night at 100 m?",
                                     "My payload was lost in August. How quickly will someone call me, and what do I get?" })
 {
-    AgentResponse response = await agent.RunAsync(question);
+    AgentResponse response = await agent.RunAsync(question);   // no session: every question starts fresh
     Console.WriteLine($"> {question}\n  {response.Text.Trim()}\n");
 }
 

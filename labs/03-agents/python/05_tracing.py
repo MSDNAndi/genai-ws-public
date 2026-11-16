@@ -4,6 +4,9 @@
 configure_otel_providers(enable_console_exporters=True) prints ~1,500 lines per run. For the lab we plug in a tiny
 exporter that prints one line per span instead. In production you point the same spans at Application Insights,
 Aspire, Jaeger or Langfuse (OTEL_EXPORTER_OTLP_ENDPOINT) — no code change.
+
+Span = one timed step (an agent run, a model call, a tool call). What to notice: invoke_agent -> chat -> execute_tool
+-> chat is the tool loop from step 1, now with timings and token counts.
 """
 import asyncio
 import json
@@ -17,9 +20,11 @@ from lab3_common import OPTIONS, chat_client
 
 
 class OneLinePerSpan(SpanExporter):
+    """An exporter receives finished spans. Ours prints name, duration, tokens and tool arguments, one line each."""
+
     def export(self, spans):
         for s in spans:
-            a = dict(s.attributes or {})
+            a = dict(s.attributes or {})                  # the span's details (named by the GenAI conventions)
             tokens = (f"  tokens in={a.get('gen_ai.usage.input_tokens')} out={a.get('gen_ai.usage.output_tokens')}"
                       if "gen_ai.usage.input_tokens" in a else "")
             tool_args = f"  args={a.get('gen_ai.tool.call.arguments')}" if "gen_ai.tool.call.arguments" in a else ""

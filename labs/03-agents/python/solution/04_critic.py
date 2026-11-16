@@ -1,5 +1,9 @@
 """Lab 3 · step 4 — add a critic: researcher -> writer -> critic -> writer (revise), as a group chat with a fixed
-speaking order and a hard round limit. The critic can end it early by saying APPROVED."""
+speaking order and a hard round limit. The critic can end it early by saying APPROVED.
+
+Group chat = everyone reads one shared conversation; a small function decides who speaks next. Here that function
+is plain code (next_speaker), not a model. What to notice: the two ways it stops - APPROVED or the round limit.
+"""
 import asyncio
 
 from agent_framework import Agent
@@ -11,6 +15,7 @@ TASK = "Write the FAQ entry: 'Can I send a 150 Wh power bank with Kestrel, and w
 
 
 def next_speaker(state) -> str:
+    # called before every turn; state.current_round = turns so far (0 = the first one)
     # >>> TODO 2: return who speaks next - round 0 the researcher, then writer and critic take turns
     if state.current_round == 0:
         return "researcher"
@@ -22,6 +27,7 @@ APPROVED = []   # set by the termination check: the run outputs only hold the wr
 
 
 def critic_approved(conversation) -> bool:
+    # called after every turn with the whole conversation: True = stop now
     ok = any("APPROVED" in (m.text or "") for m in conversation if m.author_name == "critic")
     if ok:
         APPROVED.append(True)
@@ -31,6 +37,7 @@ def critic_approved(conversation) -> bool:
 async def main() -> None:
     client = chat_client()
     async with kestrel_docs_tool() as docs:
+        # writer and critic read other agents' turns -> handoffs_as_user (see lab3_common.py)
         researcher = Agent(client=client, name="researcher", tools=[docs], default_options=OPTIONS,
                            instructions="Collect the facts with search_docs. Bullet list with chunk ids.")
         writer = Agent(client=client, name="writer", default_options=OPTIONS, middleware=[handoffs_as_user("writer")],
@@ -39,6 +46,8 @@ async def main() -> None:
         critic = Agent(client=client, name="critic", default_options=OPTIONS, middleware=[handoffs_as_user("critic")],
                        instructions="Check the latest FAQ draft against the researcher's facts. If it is correct, "
                                     "complete and under 90 words, reply only APPROVED. Otherwise list the fixes.")
+        # GroupChatBuilder = agents take turns in one shared chat. selection_func: who is next; max_rounds: hard limit;
+        # termination_condition: the early exit; output_from=[writer]: hand us the writer's drafts.
         workflow = GroupChatBuilder(participants=[researcher, writer, critic], selection_func=next_speaker,
                                     max_rounds=5, termination_condition=critic_approved, output_from=[writer]).build()
         result = await workflow.run(TASK)

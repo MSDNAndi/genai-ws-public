@@ -1,6 +1,11 @@
-"""Shared setup for Lab 3: one chat client for all agents + the path to the Lab 2 MCP server.
+"""Shared setup for Lab 3 - read it once, then every step file stays short.
 
-Microsoft Agent Framework 1.19. We use the Chat Completions client because every endpoint of the day speaks it
+Three helpers the step files import:
+  chat_client()        -> the connection to the model (one per model name)
+  kestrel_docs_tool()  -> the Lab 2 MCP server, packaged as a tool an agent can call
+  handoffs_as_user()   -> a small fix so the *next* agent in a workflow really answers (see below)
+
+Microsoft Agent Framework (MAF) 1.19. We use the Chat Completions client because every endpoint of the day speaks it
 (Foundry, the gateway, Ollama, LM Studio, the offline mock). OpenAIChatClient would use the Responses API instead.
 """
 import os
@@ -18,7 +23,8 @@ for _folder in [*_here.parents, _Path.cwd(), *_Path.cwd().parents]:
         load_dotenv(_folder / ".env")  # so labs/.env or one .env at the repo root both work
 KEY = os.environ["GENAI_API_KEY"]
 HEADERS = {"api-key": KEY} if os.getenv("GENAI_KEY_HEADER", "api-key") == "api-key" else None
-# forwarded to the model with every request (low for gpt-5 models, none for local thinking models)
+# Sent with every request: GENAI_REASONING_EFFORT from labs/.env ("low" for gpt-5 models). The workshop gateway
+# drops it for models that do not support it, so switching models only needs GENAI_MODEL.
 OPTIONS = {"reasoning_effort": os.environ["GENAI_REASONING_EFFORT"]} if os.getenv("GENAI_REASONING_EFFORT") else {}
 
 LABS = next(p for p in Path(__file__).resolve().parents if (p / "_tools" / "make_starters.py").exists())  # labs/ root
@@ -27,12 +33,17 @@ LAB2_INDEX = LABS / "02-rag-mcp" / "build" / "index.json"
 
 
 def chat_client(model: str | None = None) -> OpenAIChatCompletionClient:
+    """The model connection an Agent talks to. Default model: GENAI_MODEL (08_team passes one per agent)."""
     return OpenAIChatCompletionClient(model=model or os.environ["GENAI_MODEL"], api_key=KEY,
                                       base_url=os.environ["GENAI_BASE_URL"], default_headers=HEADERS)
 
 
 def kestrel_docs_tool() -> MCPStdioTool:
-    """The Lab 2 MCP server as an agent tool (started as a child process over stdio)."""
+    """The Lab 2 MCP server as an agent tool (started as a child process over stdio).
+
+    MCPStdioTool = "start this program, use its tools". Use it with `async with`: entering starts the server and
+    lists its tools (search_docs), leaving stops it again.
+    """
     if not LAB2_INDEX.exists():
         sys.exit("The Lab 2 index is missing - run labs/02-rag-mcp/python/solution/01_ingest.py and 02_embed.py first.")
     return MCPStdioTool(name="kestrel_docs", command=sys.executable, args=[str(LAB2_SERVER)],
@@ -43,15 +54,17 @@ def kestrel_docs_tool() -> MCPStdioTool:
 def handoffs_as_user(me: str):
     """Chat middleware for agents that work on someone else's output (writer, critic).
 
-    Workflows share one transcript: the researcher's notes reach the writer as an *assistant* message (with
-    author_name="researcher"). Frontier models cope; small local models often think they have already answered and
-    return an empty reply (verified with qwen3.5:2b on Ollama). Re-labelling other agents' turns as user turns fixes it.
+    Why it exists: in a workflow all agents share one transcript. The researcher's notes reach the writer as an
+    *assistant* message - to the model that reads like "I already said this". Frontier models cope; small local models
+    often believe they have already answered and return an EMPTY reply (verified with qwen3.5:2b on Ollama).
+    The fix: just before each model call, turn other agents' turns into user turns: "[researcher] <the notes>".
+    Middleware = a function that runs around every model call. `me` = this agent's name (its own turns stay as they are).
     """
-    @chat_middleware
+    @chat_middleware                                       # runs before every model call of this agent
     async def relabel(context: ChatContext, call_next):
-        context.messages[:] = [
+        context.messages[:] = [                            # rewrite the message list in place
             Message("user", [f"[{m.author_name}] {m.text}"])
             if m.role == "assistant" and m.author_name and m.author_name != me and m.text else m
             for m in context.messages]
-        await call_next()
+        await call_next()                                  # now send the (rewritten) messages to the model
     return relabel

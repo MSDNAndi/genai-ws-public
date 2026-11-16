@@ -2,6 +2,9 @@
 
 pip install -r ../../../requirements-extras.txt     (agent-framework-devui, beta)
 python 07_devui.py                                  -> http://127.0.0.1:8090  (Ctrl+C to stop)
+
+Nothing new to build: an agent (as in step 1) and a two-step workflow (as in step 3), handed to serve().
+What to notice in the browser: every tool call and every workflow step, with its input and output.
 """
 import asyncio
 import json
@@ -26,4 +29,5 @@ poet = Agent(client=client, name="poet", default_options=OPTIONS, instructions="
 pipeline = SequentialBuilder(participants=[weather, poet]).build()
 
 # auth_enabled=False is fine on localhost; with auth on, the token is only printed at INFO log level
+# serve() = a local web app listing these agents/workflows, so you can chat with them and inspect each step
 serve(entities=[weather, pipeline], port=8090, auto_open=True, auth_enabled=False)

@@ -3,6 +3,9 @@ thread) and a human approval step (interrupt / resume). Compare: in MAF you *dec
 
 python 06_langgraph.py            # asks you to approve in the terminal
 python 06_langgraph.py --auto     # approves automatically (used by the test runner)
+
+Read it in order: State (what the graph remembers) -> nodes (plain functions) -> edges (what runs next) -> compile.
+What to notice: human_review pauses the whole graph; the checkpointer lets it continue later, right where it stopped.
 """
 import os
 import sys
@@ -27,12 +30,13 @@ from kestrel_search import Index  # noqa: E402  (Lab 2 retrieval, called directl
 KEY = os.environ["GENAI_API_KEY"]
 HEADERS = {"api-key": KEY} if os.getenv("GENAI_KEY_HEADER", "api-key") == "api-key" else None
 EXTRA = {"reasoning_effort": os.environ["GENAI_REASONING_EFFORT"]} if os.getenv("GENAI_REASONING_EFFORT") else {}
+# LangChain's model client: the same endpoint, key and model as in every other step
 llm = ChatOpenAI(model=os.environ["GENAI_MODEL"], base_url=os.environ["GENAI_BASE_URL"], api_key=KEY,
                  default_headers=HEADERS, **EXTRA)
 index = Index()
 
 
-class State(TypedDict, total=False):
+class State(TypedDict, total=False):   # the graph's memory; each node returns only the fields it changes
     question: str
     notes: str
     draft: str
@@ -59,6 +63,7 @@ def human_review(state: State) -> Command:
     return Command(goto="write", update={"feedback": str(decision)})
 
 
+# draw the graph: START -> research -> write -> human_review (which ends, or loops back to write)
 graph = StateGraph(State)
 graph.add_node("research", research)
 graph.add_node("write", write)
@@ -66,7 +71,7 @@ graph.add_node("human_review", human_review)
 graph.add_edge(START, "research")
 graph.add_edge("research", "write")
 graph.add_edge("write", "human_review")
-app = graph.compile(checkpointer=InMemorySaver())
+app = graph.compile(checkpointer=InMemorySaver())        # checkpointer = saves the state after every node
 
 config = {"configurable": {"thread_id": "customer-4711"}}  # same thread id = same saved state
 out = app.invoke({"question": "Can I send a 150 Wh power bank?"}, config)

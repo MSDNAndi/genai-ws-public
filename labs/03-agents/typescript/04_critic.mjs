@@ -4,6 +4,9 @@
 //
 // Agent Framework declares this (GroupChatBuilder with a selection function, max_rounds, a termination condition);
 // with the AI SDK it is a loop over a shared transcript that every agent reads.
+//
+// Group chat = everyone reads one shared conversation; a small function decides who speaks next. Here that function
+// is plain code (nextSpeaker), not a model. What to notice: the two ways it stops - APPROVED or the round limit.
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createMCPClient } from "@ai-sdk/mcp";
@@ -11,6 +14,7 @@ import { Experimental_StdioMCPTransport } from "@ai-sdk/mcp/mcp-stdio";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { ToolLoopAgent } from "ai";
 
+// --- setup, the same in every Lab 3 file: find labs/, load labs/.env, connect to the model ---
 let LABS = import.meta.dirname;                     // labs/.env (real environment variables win)
 while (!existsSync(join(LABS, "_tools", "make_starters.py")) && LABS !== dirname(LABS)) LABS = dirname(LABS);
 // labs/.env, or one .env at the repo root: load every .env from labs/ upward (never overwrites) - nearest wins
@@ -24,6 +28,7 @@ if (!BASE || !KEY || !MODEL) throw new Error("Set GENAI_BASE_URL, GENAI_API_KEY 
 const HEADERS = (process.env.GENAI_KEY_HEADER ?? "api-key") === "api-key" ? { "api-key": KEY } : undefined;
 const workshop = createOpenAICompatible({ name: "workshop", baseURL: BASE, apiKey: KEY, headers: HEADERS });
 const REASONING = process.env.GENAI_REASONING_EFFORT;   // -> reasoning_effort (unset = not sent)
+// --- end of setup ---
 
 const LAB2_SERVER = join(LABS, "02-rag-mcp", "typescript", "solution", "04_mcp_server.mjs");   // the finished Lab 2 server
 if (!existsSync(join(LABS, "02-rag-mcp", "build", "index.json"))) {
@@ -33,11 +38,12 @@ if (!existsSync(join(LABS, "02-rag-mcp", "build", "index.json"))) {
 const TASK = "Write the FAQ entry: 'Can I send a 150 Wh power bank with Kestrel, and what happens if my parcel is lost?'";
 const MAX_ROUNDS = 5;                               // a hard limit: the conversation always ends
 
-function nextSpeaker(round) {
+function nextSpeaker(round) {                       // round = turns so far (0 = the first one)
   // TODO 2: return who speaks next - round 0 the researcher, then writer and critic take turns
   throw new Error("TODO 2: return who speaks next - round 0 the researcher, then writer and critic take turns");
 }
 
+// createMCPClient = our side of the MCP connection; docs.tools() asks the server which tools it has.
 const docs = await createMCPClient({
   transport: new Experimental_StdioMCPTransport({ command: process.execPath, args: [LAB2_SERVER], env: process.env }),
 });
@@ -57,6 +63,7 @@ try {
   const drafts = [];
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const speaker = nextSpeaker(round);
+    // every agent gets the WHOLE chat so far as its prompt, each turn labelled with its author
     const prompt = transcript.map((m) => `[${m.author}]\n${m.text}`).join("\n\n");
     const { text } = await agents[speaker].generate({ prompt });
     transcript.push({ author: speaker, text });

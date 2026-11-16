@@ -11,6 +11,9 @@
 // customer message at the same time (no tool - on purpose), the fact-checker holds the draft against the docs, and the
 // lead merges everything. Every agent runs on a different vendor's model - same client class, same endpoint, only the
 // model name changes (override with TEAM_LEAD_MODEL, TEAM_POLICY_MODEL, TEAM_COMMS_MODEL, TEAM_CHECKER_MODEL).
+//
+// Team = specialists with different jobs (and models); policy and comms run in PARALLEL, the rest one after another.
+// What to notice: agreement is not correctness - check the 09:05 arrival against the docs yourself.
 using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Diagnostics;
@@ -21,6 +24,7 @@ using OpenAI;
 using OpenAI.Chat;
 #pragma warning disable OPENAI001 // ReasoningEffortLevel is still marked "experimental" in the OpenAI .NET SDK 2.13
 
+// --- setup, the same in every Lab 3 file: find labs/, load labs/.env, connect to the model ---
 var labs = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? Directory.GetCurrentDirectory();
 while (!File.Exists(Path.Combine(labs, "_tools", "make_starters.py")))    // walk up to the labs/ root
     labs = Path.GetDirectoryName(labs) ?? throw new DirectoryNotFoundException("labs/_tools not found above this file");
@@ -41,8 +45,10 @@ var clientOptions = new OpenAIClientOptions { Endpoint = new Uri(Env("GENAI_BASE
 if ((Environment.GetEnvironmentVariable("GENAI_KEY_HEADER") ?? "api-key") == "api-key")
     clientOptions.AddPolicy(new HeaderPolicy("api-key", key), PipelinePosition.PerCall);
 var openai = new OpenAIClient(new ApiKeyCredential(key), clientOptions);
+// --- end of setup ---
 
-// One chat client per model. Only reasoning models get reasoning_effort - DeepSeek and Grok reject it (HTTP 400).
+// One chat client per model. reasoning_effort only means something for reasoning models, so only they get it
+// (the gateway drops it for the others anyway).
 IChatClient ClientFor(string model)
 {
     bool reasoning = model.StartsWith("gpt-5") || model.StartsWith("gpt-oss") || model.StartsWith("o3") || model.StartsWith("o4");
@@ -53,15 +59,17 @@ IChatClient ClientFor(string model)
         })
         .Build();
 }
+// One team member: its own model (lead_plan and lead_merge both use models["lead"]), its job, its tools.
 AIAgent Member(string name, string instructions, IList<AITool>? tools = null) =>
     ClientFor(models[name.Split('_')[0]]).AsAIAgent(name: name, instructions: instructions, tools: tools);
 
-// one row per agent run: who, which model, how long, how many tokens
+// Run() = agent.RunAsync plus a stopwatch: one ledger row per agent run (who, which model, how long, how many tokens)
 var ledger = new List<(string Agent, string Model, double Sec, long In, long Out)>();
 async Task<string> Run(AIAgent agent, string input)
 {
     var sw = Stopwatch.StartNew();
     AgentResponse response = await agent.RunAsync(input);
+    // lock: policy and comms may finish at the same moment
     lock (ledger) ledger.Add((agent.Name!, models[agent.Name!.Split('_')[0]], sw.Elapsed.TotalSeconds,
                               response.Usage?.InputTokenCount ?? 0, response.Usage?.OutputTokenCount ?? 0));
     return response.Text.Trim();
@@ -78,6 +86,7 @@ Console.WriteLine("Team: " + string.Join(", ", models.Select(m => $"{m.Key}={m.V
 var total = Stopwatch.StartNew();
 
 // The Lab 2 MCP server — always the finished C# one — started as a child process over stdio.
+// McpClient = our side of the MCP connection; ListToolsAsync() asks the server which tools it has.
 string server = Path.Combine(labs, "02-rag-mcp", "csharp", "solution", "04_mcp_server.cs");
 if (!File.Exists(Path.Combine(labs, "02-rag-mcp", "build", "index.json")))
     throw new FileNotFoundException("The Lab 2 index is missing - run labs/02-rag-mcp/csharp/solution/02_embed.cs first.");
@@ -122,6 +131,7 @@ Console.WriteLine($"[lead] plan:\n{plan}\n");
 
 // 2 · the two specialists work at the same time
 string notes, draft;
+// Start both runs first (they then run at the same time); Task.WhenAll waits until both are done.
 // >>> TODO 2: run policy and comms CONCURRENTLY on the same input (start both runs, then await both with Task.WhenAll)
 string brief = $"Incident:\n{incident}\n\nThe lead's plan:\n{plan}";
 Task<string> policyRun = Run(policy, brief), commsRun = Run(comms, brief);

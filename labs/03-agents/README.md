@@ -6,6 +6,10 @@ against the offline mock (all solutions and starters) · not yet against the wor
 **Goal:** build an agent with Microsoft Agent Framework (Python and C#) or AI SDK (TypeScript), give it your Lab 2
 MCP server as a tool, chain two agents into a workflow, add a critic, and look inside with tracing.
 
+**How to read the code:** every file starts with a short header (what this step shows, what to notice). In C# and
+TypeScript the first block is the same setup in every file (find `labs/`, load `.env`, connect) — skip to
+`end of setup`. Python keeps that setup in `lab3_common.py`.
+
 **Before you start:** the Lab 2 index exists (`labs/02-rag-mcp/build/index.json` — run Lab 2 step 2 in any language).
 The agents always start the *finished* Lab 2 server, so an unfinished Lab 2 starter does not block you.
 
@@ -50,6 +54,7 @@ predictable; use LLM routing only when the path really depends on the content.
 Application Insights, Aspire or Langfuse by setting `OTEL_EXPORTER_OTLP_ENDPOINT` — no code change.
 
 ## Stretch
+- **A2A Bazaar — [`a2a/`](a2a/README.md).** Start your own agent (`python a2a_agent.py --persona pirate`), make the port public, and call your neighbour's over A2A.
 - **A team on four vendors' models — `08_team` · TODO 1–2.** This morning's incident (a K-7 Heron overloaded in the
   rain) goes to a small team: a **lead** (gpt-5-nano) splits the job, a **policy analyst** (DeepSeek, with the docs
   tool) and a **comms writer** (Llama, no tool — on purpose) work **at the same time**, a **fact-checker** (Grok, with
@@ -59,13 +64,12 @@ Application Insights, Aspire or Langfuse by setting `OTEL_EXPORTER_OTLP_ENDPOINT
   Run: `python 08_team.py` / `dotnet run --file 08_team.cs` (~40–60 s, about 6–10k tokens, well under 1 cent).
   Same client class, same endpoint, four vendors: only the model name changes. Swap any of them with
   `TEAM_LEAD_MODEL`, `TEAM_POLICY_MODEL`, `TEAM_COMMS_MODEL`, `TEAM_CHECKER_MODEL` (e.g. `TEAM_COMMS_MODEL=gpt-4o-mini`).
-  `reasoning_effort` is sent only to gpt-5 / gpt-oss models (DeepSeek and Grok reject it).
   *Checkpoint:* the table at the end (agent · model · seconds · tokens). Who is the expensive one, and why? (The agent
   with the tool reads the search results: input tokens.) Now read the policy notes: is the replacement at 09:05 late
   (window ends 08:00, refund after +20 min)? Some runs say "no" — and the checker and the lead happily agree.
   Agreement between agents is not correctness: give arithmetic to a tool, or a checker a different job than the author.
-- **Another brain, same agent.** Set `GENAI_MODEL` to your `GENAI_MODEL_2` (DeepSeek, Grok, Llama, gpt-oss …; delete `GENAI_REASONING_EFFORT` for DeepSeek and Grok) or point
-  `GENAI_BASE_URL` at Ollama and re-run step 2. Which models call the tool, which guess?
+- **Another brain, same agent.** Set `GENAI_MODEL` to your `GENAI_MODEL_2` (DeepSeek, Grok, Llama, gpt-oss …) and re-run
+  step 2 — nothing else to change. (Or point `GENAI_BASE_URL` at Ollama — see Fallback.) Which models call the tool, which guess?
 - **`06_langgraph.py`** — the same idea as an explicit graph: a checkpointer keeps state per `thread_id`, and a human
   approval step (`interrupt()` / `Command(resume=…)`) pauses the graph until you answer.
 - **`07_devui.py`** — `pip install -r ../requirements-extras.txt`, then chat with your agent and workflow in the

@@ -2,12 +2,17 @@
 //
 // AI SDK 7: ToolLoopAgent runs the loop from Lab 1 step 4 for you. Memory is explicit: YOU keep the messages array and
 // pass it back in (Agent Framework keeps it in a session object; same idea).
+//
+// Agent = model + instructions + tools, run in a loop: the model asks for a tool, the SDK calls it, the model reads
+// the result - until it can answer. What to notice: "And what is that in Fahrenheit?" only works because we pass the
+// history back in. The last call has no history, so the agent cannot know what "that" is.
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { ToolLoopAgent, isStepCount, tool } from "ai";
 import { z } from "zod";
 
+// --- setup, the same in every Lab 3 file: find labs/, load labs/.env, connect to the model ---
 let LABS = import.meta.dirname;                     // labs/.env (real environment variables win)
 while (!existsSync(join(LABS, "_tools", "make_starters.py")) && LABS !== dirname(LABS)) LABS = dirname(LABS);
 // labs/.env, or one .env at the repo root: load every .env from labs/ upward (never overwrites) - nearest wins
@@ -22,11 +27,14 @@ const HEADERS = (process.env.GENAI_KEY_HEADER ?? "api-key") === "api-key" ? { "a
 // Chat Completions through the OpenAI-compatible provider: every endpoint of the day speaks it (Foundry, the gateway,
 // Ollama, LM Studio, the offline mock).
 const workshop = createOpenAICompatible({ name: "workshop", baseURL: BASE, apiKey: KEY, headers: HEADERS });
-// sent with every request as reasoning_effort (low for gpt-5 models, none for local thinking models); unset = not sent
+// sent with every request as reasoning_effort ("low" for gpt-5 models; unset = not sent). The gateway drops it for
+// models that do not support it, so switching models only needs GENAI_MODEL.
 const REASONING = process.env.GENAI_REASONING_EFFORT;
+// --- end of setup ---
 
 const FAKE_WEATHER = { paris: [19, "light rain"], mannheim: [22, "sunny"], jacksonville: [31, "thunderstorms"] };
 
+// tool() = a function the model may call. description + inputSchema (zod) are what the model sees.
 const get_weather = tool({
   description: "Current weather for a city (temperature in Celsius and sky).",
   inputSchema: z.object({ city: z.string() }),
@@ -42,6 +50,7 @@ const to_fahrenheit = tool({
   execute: async ({ celsius }) => ({ fahrenheit: Math.round((celsius * 9 / 5 + 32) * 10) / 10 }),
 });
 
+// ToolLoopAgent = model + job description (instructions) + tools; generate() runs the whole tool loop.
 const agent = new ToolLoopAgent({
   id: "WeatherAgent",
   model: workshop.chatModel(MODEL),

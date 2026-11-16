@@ -11,6 +11,9 @@ fact-checker holds the draft against the docs, and the lead merges everything in
 Every agent runs on a different vendor's model (OpenAI, DeepSeek, Meta, xAI) - same client class, same endpoint,
 only the model name changes. Swap any of them with an environment variable, e.g. TEAM_COMMS_MODEL=gpt-4o-mini.
 At the end: who did what, on which model, how long it took and how many tokens it used.
+
+Team = specialists with different jobs (and models); policy and comms run in PARALLEL, the rest one after another.
+What to notice: agreement is not correctness - check the 09:05 arrival against the docs yourself.
 """
 import asyncio
 import os
@@ -35,7 +38,7 @@ The customer (Ms. Weber) has complained on social media."""
 
 
 def options_for(model: str) -> dict:
-    """Only reasoning models get reasoning_effort - DeepSeek and Grok reject the parameter (HTTP 400)."""
+    """reasoning_effort only means something for reasoning models, so only they get it (the gateway drops it anyway)."""
     if model.startswith(("gpt-5", "gpt-oss", "o3", "o4")):
         return {"reasoning_effort": os.getenv("GENAI_REASONING_EFFORT") or "low"}
     return {}
@@ -46,7 +49,7 @@ LEDGER = []   # one row per agent run: (agent, model, seconds, input tokens, out
 
 @agent_middleware
 async def meter(context: AgentContext, call_next):
-    """Agent middleware: time every run and read its token usage - works the same inside and outside workflows."""
+    """Agent middleware (runs around every agent run): time it and read its token usage - inside workflows too."""
     started = time.perf_counter()
 
     def record(response):
@@ -64,6 +67,7 @@ async def meter(context: AgentContext, call_next):
 
 
 def member(name: str, instructions: str, tools=None) -> Agent:
+    """One team member: its own model (lead_plan/lead_merge both use MODELS['lead']) + the meter middleware."""
     model = MODELS[name.split("_")[0]]
     return Agent(client=chat_client(model), name=name, instructions=instructions, tools=tools or [],
                  default_options=options_for(model), middleware=[meter])
@@ -96,11 +100,12 @@ async def main() -> None:
         print(f"[lead] plan:\n{plan}\n")
 
         # 2 · the two specialists work at the same time
+        # ConcurrentBuilder = send the same input to several agents at once; the aggregator merges their replies.
         # TODO 2: run policy and comms CONCURRENTLY on the same input (ConcurrentBuilder) and collect {agent name: reply text}
         raise NotImplementedError("TODO 2: run policy and comms CONCURRENTLY on the same input (ConcurrentBuilder) and collect {agent name: reply text}")
         print(f"[policy] notes:\n{work['policy']}\n\n[comms] draft:\n{work['comms']}\n")
 
-        # 3 · the fact-checker reviews the draft, 4 · the lead merges everything
+        # 3 · the fact-checker reviews the draft, 4 · the lead merges everything (plain agent.run calls, in order)
         check = (await checker.run(f"Policy notes:\n{work['policy']}\n\nCustomer message draft:\n{work['comms']}"))
         print(f"[checker] findings:\n{check.text.strip()}\n")
         review = await lead_merge.run(f"Incident:\n{INCIDENT}\n\nPolicy notes:\n{work['policy']}\n\nCustomer "

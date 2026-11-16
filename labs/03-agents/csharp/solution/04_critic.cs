@@ -6,6 +6,9 @@
 // Lab 3 · step 4 — add a critic: researcher -> writer -> critic -> writer (revise), as a group chat with a fixed
 // speaking order and a hard round limit. The critic can end it early by saying APPROVED.
 // (No revision loop needed? AgentWorkflowBuilder.BuildSequential(researcher, writer, critic) is the one-liner.)
+//
+// Group chat = everyone reads one shared conversation; a manager decides who speaks next. Here the manager is plain
+// code (CriticLoop, at the bottom), not a model. What to notice: the two ways it stops - APPROVED or the round limit.
 using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Diagnostics;
@@ -18,6 +21,7 @@ using OpenAI.Chat;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;   // OpenAI.Chat has a ChatMessage too
 #pragma warning disable OPENAI001 // ReasoningEffortLevel is still marked "experimental" in the OpenAI .NET SDK 2.13
 
+// --- setup, the same in every Lab 3 file: find labs/, load labs/.env, connect to the model ---
 var labs = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? Directory.GetCurrentDirectory();
 while (!File.Exists(Path.Combine(labs, "_tools", "make_starters.py")))    // walk up to the labs/ root
     labs = Path.GetDirectoryName(labs) ?? throw new DirectoryNotFoundException("labs/_tools not found above this file");
@@ -31,8 +35,8 @@ string key = Env("GENAI_API_KEY"), effort = Env("GENAI_REASONING_EFFORT", "");
 var clientOptions = new OpenAIClientOptions { Endpoint = new Uri(Env("GENAI_BASE_URL")) };
 if ((Environment.GetEnvironmentVariable("GENAI_KEY_HEADER") ?? "api-key") == "api-key")
     clientOptions.AddPolicy(new HeaderPolicy("api-key", key), PipelinePosition.PerCall);
-// One chat client for all agents. GENAI_REASONING_EFFORT rides along on every request (low for gpt-5 models, none for
-// local thinking models): RawRepresentationFactory hands the OpenAI SDK its own request options with the effort set.
+// One chat client for all agents. GENAI_REASONING_EFFORT ("low" for gpt-5 models) rides along on every request; the
+// gateway drops it for models that do not support it. RawRepresentationFactory = the OpenAI SDK's own request options.
 IChatClient chatClient = new OpenAIClient(new ApiKeyCredential(key), clientOptions)
     .GetChatClient(Env("GENAI_MODEL")).AsIChatClient()
     .AsBuilder()
@@ -41,8 +45,10 @@ IChatClient chatClient = new OpenAIClient(new ApiKeyCredential(key), clientOptio
         if (effort != "") o.RawRepresentationFactory ??= _ => new ChatCompletionOptions { ReasoningEffortLevel = new(effort) };
     })
     .Build();
+// --- end of setup ---
 
 // The Lab 2 MCP server — always the finished C# one — started as a child process over stdio.
+// McpClient = our side of the MCP connection; ListToolsAsync() asks the server which tools it has.
 string server = Path.Combine(labs, "02-rag-mcp", "csharp", "solution", "04_mcp_server.cs");
 if (!File.Exists(Path.Combine(labs, "02-rag-mcp", "build", "index.json")))
     throw new FileNotFoundException("The Lab 2 index is missing - run labs/02-rag-mcp/csharp/solution/02_embed.cs first.");
@@ -69,7 +75,7 @@ AIAgent critic = chatClient.AsAIAgent(name: "critic",
     instructions: "Check the latest FAQ draft against the researcher's facts. If it is correct, complete and under 90 words, " +
                   "reply only APPROVED. Otherwise list the fixes.");
 
-// A group chat: every agent sees the whole conversation; our manager decides who speaks next and when to stop.
+// CreateGroupChatBuilderWith = agents take turns in one shared chat, run by our manager (CriticLoop, max 5 turns).
 Workflow groupChat = AgentWorkflowBuilder
     .CreateGroupChatBuilderWith(_ => new CriticLoop(researcher, writer, critic) { MaximumIterationCount = 5 })
     .AddParticipants([researcher, writer, critic])
@@ -82,6 +88,7 @@ List<ChatMessage> drafts = [.. result.Messages.Where(m => m.AuthorName == "write
 Console.WriteLine($"speaking order: {string.Join(" -> ", result.Messages.Where(m => m.Text != "").Select(m => m.AuthorName))}");
 Console.WriteLine($"{drafts.Count} writer draft(s). Final:\n{(drafts.Count > 0 ? drafts[^1].Text : "(none)")}");
 
+// GroupChatManager = the referee of a group chat: two questions, asked before every turn - who is next, do we stop?
 sealed class CriticLoop(AIAgent researcher, AIAgent writer, AIAgent critic) : GroupChatManager
 {
     // Called before every turn; IterationCount = number of turns so far (0 = the first one).
