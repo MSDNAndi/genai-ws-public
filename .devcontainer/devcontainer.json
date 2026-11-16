@@ -1,0 +1,48 @@
+{
+  // Building Stuff with GenAI: one click, everything installed. Python 3.12 + .NET 10 + Node 24, all lab packages.
+  // Attendees open it in their own GitHub account: https://codespaces.new/msdnAndi/genai-ws-public?quickstart=1
+  "name": "Building Stuff with GenAI",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": { "version": "10.0" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "24" }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "4gb" },
+
+  // The only thing an attendee types: the room key, on the "Create codespace" page.
+  // It arrives as an environment variable, and every lab lets environment variables win over labs/.env.
+  "secrets": {
+    "GENAI_API_KEY": {
+      "description": "The workshop key shown on the slide (or your own key for any OpenAI-compatible endpoint)."
+    }
+  },
+
+  // labs/.venv first on PATH: `python 01_hello.py` works in every terminal without activating anything.
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/labs/.venv/bin:${containerEnv:PATH}",
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_NOLOGO": "1"
+  },
+
+  "onCreateCommand": "bash .devcontainer/on-create.sh",
+  "postAttachCommand": "bash .devcontainer/welcome.sh",
+
+  "customizations": {
+    "codespaces": { "openFiles": ["labs/START-HERE.md"] },
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-dotnettools.csharp",
+        "GitHub.copilot-chat"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/labs/.venv/bin/python",
+        "python.terminal.activateEnvironment": false,
+        "terminal.integrated.cwd": "${containerWorkspaceFolder}/labs",
+        "editor.fontSize": 15,
+        "terminal.integrated.fontSize": 15,
+        "workbench.startupEditor": "none"
+      }
+    }
+  }
+}
