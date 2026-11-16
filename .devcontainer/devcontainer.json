@@ -45,7 +45,9 @@
         "ms-python.python",
         "ms-toolsai.jupyter",
         "ms-dotnettools.csharp",
-        "GitHub.copilot-chat"
+        "GitHub.copilot-chat",
+        // one ▶ "Run Code" button on every lab file: Python, C# (dotnet run --file) and TypeScript/JavaScript (node)
+        "formulahendry.code-runner"
       ],
       "settings": {
         "python.defaultInterpreterPath": "${containerWorkspaceFolder}/labs/.venv/bin/python",
@@ -58,6 +60,18 @@
         "workbench.editorAssociations": { "*.md": "vscode.markdown.preview.editor", "*.ipynb": "jupyter-notebook" },
         // Demo notebooks (demos/notebooks): Run All uses labs/.venv, never the image's bare system Python
         "jupyter.kernels.excludePythonEnvironments": ["/usr/local/bin/python", "/usr/local/python/current/bin/python", "/usr/bin/python3"],
+        // ▶ Run Code (top right of the editor, or Ctrl+Alt+N): runs the open file in the terminal, from its own folder
+        "code-runner.runInTerminal": true,
+        "code-runner.saveFileBeforeRun": true,
+        "code-runner.fileDirectoryAsCwd": true,
+        "code-runner.clearPreviousOutput": true,
+        "code-runner.showRunIconInEditorTitleMenu": true,
+        "code-runner.executorMap": {
+          "python": "python -u \"$fullFileName\"",
+          "csharp": "dotnet run --file \"$fullFileName\"",
+          "javascript": "node \"$fullFileName\"",
+          "typescript": "node \"$fullFileName\""
+        },
         "csharp.suppressBuildAssetsNotification": true,
         // .NET 10 is already installed: stop the C# extension's ".NET install" attempt (red popup "No version was defined")
         "dotnetAcquisitionExtension.existingDotnetPath": [ { "extensionId": "ms-dotnettools.csharp", "path": "/usr/share/dotnet/dotnet" } ]

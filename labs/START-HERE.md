@@ -2,6 +2,8 @@
 
 Everything is installed. The terminal below is already in `labs/`. Pick **one** language, copy its command (hover, then the copy icon), paste it into the terminal and press Enter.
 
+**Even simpler:** open any lab file (`.py`, `.cs` or `.mjs`) and click **▶ Run Code** at the top right of the editor (or press Ctrl+Alt+N). It runs that file in the terminal, in every language.
+
 **Python**
 ```bash
 python 01-hello-model/python/solution/01_hello.py
