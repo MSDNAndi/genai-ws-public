@@ -87,3 +87,9 @@ First call in Python, C# and TypeScript:
 ![01_hello in C#](recordings/01_hello_csharp.gif)
 
 ![01_hello in TypeScript](recordings/01_hello_typescript.gif)
+
+## Notebooks (the instructor's demos)
+
+The demos from the talk are in `demos/notebooks/` as Jupyter notebooks, ready to run in the same codespace: open one (for example `demos/notebooks/01-foundations/python/01_hello_model.ipynb`) and click **Run All**. Nothing to install or configure: they use the same key and settings as the labs. If VS Code asks for a kernel, pick **Python 3 (labs/.venv)**.
+
+A few notebooks need things a codespace doesn't have (a local GPU model, ComfyUI, a Claude account, an Azure deployment). Their first cell says so, and they stop early with a short explanation; a red `SystemExit` there is expected.

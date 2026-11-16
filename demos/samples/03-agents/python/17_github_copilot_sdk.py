@@ -107,7 +107,7 @@ def own_tools_only(request, *_):
 
 # %%
 async def main() -> None:
-    client = CopilotClient(working_directory=str(Path(__file__).parent))
+    client = CopilotClient(working_directory=str(Path(globals().get("__file__", "x")).resolve().parent))  # notebook: the cwd
     await client.start()
     status = await client.get_status()
     print(f"Copilot runtime {status.version}")

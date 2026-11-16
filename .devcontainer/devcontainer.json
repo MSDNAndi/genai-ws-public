@@ -29,6 +29,7 @@
     "8090": { "label": "Lab 3 DevUI", "onAutoForward": "openBrowser" },
     "6274": { "label": "MCP Inspector (Lab 2)", "onAutoForward": "openBrowser" },
     "6277": { "label": "MCP Inspector proxy", "onAutoForward": "silent" },
+    "8000": { "label": "Lab 4 mix & match (out/chain.html)", "onAutoForward": "openBrowser" },
     "8188": { "label": "ComfyUI / stand-in (Lab 4)", "onAutoForward": "silent" }
   },
 
@@ -40,6 +41,7 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
+        "ms-toolsai.jupyter",
         "ms-dotnettools.csharp",
         "GitHub.copilot-chat"
       ],
@@ -51,7 +53,9 @@
         "terminal.integrated.fontSize": 15,
         "workbench.startupEditor": "none",
         // Markdown (START-HERE, lab READMEs) opens rendered, with copy buttons on the commands
-        "workbench.editorAssociations": { "*.md": "vscode.markdown.preview.editor" },
+        "workbench.editorAssociations": { "*.md": "vscode.markdown.preview.editor", "*.ipynb": "jupyter-notebook" },
+        // Demo notebooks (demos/notebooks): Run All uses labs/.venv, never the image's bare system Python
+        "jupyter.kernels.excludePythonEnvironments": ["/usr/local/bin/python", "/usr/local/python/current/bin/python", "/usr/bin/python3"],
         "csharp.suppressBuildAssetsNotification": true
       }
     }

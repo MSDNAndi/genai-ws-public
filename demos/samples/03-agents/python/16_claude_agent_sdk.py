@@ -5,7 +5,9 @@
 # ]
 # ///
 # %% [markdown]
-# # 16 - Claude Agent SDK (Anthropic)
+# # 16 - Claude Agent SDK (Anthropic)
+#
+# > **Instructor / local only:** needs the `claude` CLI signed in to a Claude account and the `--live` flag (script run). As a notebook / in a codespace it prints what is missing and stops (the red `SystemExit` is expected).
 #
 # | | |
 # |---|---|
@@ -61,7 +63,7 @@ from claude_agent_sdk import (
     tool,
 )
 
-SAMPLES = Path(__file__).resolve().parents[1]  # samples/03-agents
+SAMPLES = Path(globals().get("__file__", "16_claude_agent_sdk.py")).resolve().parents[1]  # samples/03-agents (no __file__ in a notebook)
 
 if "--live" not in sys.argv:
     print("Claude Agent SDK sample - needs the `claude` CLI signed in to a Claude account.")

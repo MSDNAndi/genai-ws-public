@@ -9,6 +9,8 @@
 # %% [markdown]
 # # 14 - Calling a hosted agent
 #
+# > **Codespace / notebook:** needs the agent from sample 12 running on :8088 (start `python demos/samples/03-agents/python/12_foundry_hosted_maf/main.py` in a terminal first). Without it, Run All stops at the connect cell with that hint (the red `SystemExit` is expected). Calling a *deployed* agent (`--agent`) needs Entra auth - instructor demo.
+#
 # | | |
 # |---|---|
 # | **Pattern** | client of an agent service |
@@ -32,6 +34,7 @@
 import argparse
 import os
 
+import httpx
 from openai import OpenAI
 
 parser = argparse.ArgumentParser()
@@ -59,6 +62,12 @@ def connect() -> OpenAI:
         return project.get_openai_client(agent_name=args.agent)
 
     print(f"calling local agent at {args.url}")
+    try:
+        httpx.get(args.url, timeout=3)   # any HTTP answer will do; only "nobody listening" stops us
+    except httpx.TransportError:
+        raise SystemExit(f"No agent is listening at {args.url}. Start sample 12 first, in a terminal: "
+                         "python demos/samples/03-agents/python/12_foundry_hosted_maf/main.py "
+                         "- then run this again.")
     return OpenAI(base_url=args.url, api_key="local-no-auth")
 
 

@@ -17,6 +17,8 @@
 # %% [markdown]
 # # 02 - ComfyUI from code - log the seed
 #
+# > **Instructor / local only:** needs a local ComfyUI with a GPU. In a codespace, Run All stops after the first code cell with an explanation (the red `SystemExit` is expected) - use 04_cloud_image instead.
+#
 # run a ComfyUI workflow from code and LOG THE SEED (craft principle #1: you can only improve what you
 #
 # can reproduce). Every image gets a sidecar .json with the exact settings.
@@ -46,7 +48,7 @@ if "--profile" in sys.argv:
                       GENAI_KEY_HEADER="api-key" if _p.key_header == "api-key" else "authorization")
     if _name == "mock":                      # the mock has no reasoning knob
         os.environ.pop("GENAI_REASONING_EFFORT", None)
-if len(sys.argv) == 1:   # started from the menu without a workflow: explain instead of an argparse error
+if len(sys.argv) == 1 or "ipykernel" in sys.modules:   # menu or notebook, no workflow: explain instead of an argparse error
     print("This demo drives a local ComfyUI (default http://127.0.0.1:8188, set COMFYUI_URL) with a workflow file.")
     print("Run it like this:  uv run 02_comfy_run.py ../comfyui_workflows/01_txt2img_sdxl.json")
     print("No ComfyUI on this machine? Demo 4.04 generates an image in the cloud instead.")

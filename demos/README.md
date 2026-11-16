@@ -24,6 +24,16 @@ first markdown cell, so a new sample appears without touching the runner.
 `p` switches the provider profile mid-session, which is the "same code, different
 vendor" moment of the workshop.
 
+## In the workshop codespace: open a notebook, Run All
+
+Everything is preinstalled there: `labs/.venv` (labs + `requirements.txt` here +
+`shared/python`) is the notebook kernel, the endpoint settings come from
+`labs/.env` (linked as the repo-root `.env`), the key from the codespace secret.
+No `demos/.env` needed. Open any `notebooks/**/*.ipynb` and press **Run All**
+(if VS Code asks for a kernel: *Python 3 (labs/.venv)*). Notebooks that need a
+local GPU runtime, ComfyUI, a Claude account or an Azure deployment say so in
+their first cell and stop with an explanation.
+
 ## Run something in 60 seconds
 
 No key needed - a local stub endpoint ships with the repo:

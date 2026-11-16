@@ -17,6 +17,8 @@
 # %% [markdown]
 # # 03 - One knob at a time
 #
+# > **Instructor / local only:** needs a local ComfyUI with a GPU. In a codespace, Run All stops after the first code cell with an explanation (the red `SystemExit` is expected).
+#
 # change ONE knob at a time and put the results side by side (craft principle #2).
 #
 # python 03_one_knob.py ../comfyui_workflows/01_txt2img_sdxl.json --knob cfg --values 1.5 3 5 8 --seed 42 --prompt "..."
@@ -44,7 +46,7 @@ if "--profile" in sys.argv:
                       GENAI_KEY_HEADER="api-key" if _p.key_header == "api-key" else "authorization")
     if _name == "mock":                      # the mock has no reasoning knob
         os.environ.pop("GENAI_REASONING_EFFORT", None)
-if len(sys.argv) == 1:   # started from the menu without a workflow: explain instead of an argparse error
+if len(sys.argv) == 1 or "ipykernel" in sys.modules:   # menu or notebook, no workflow: explain instead of an argparse error
     print("This demo drives a local ComfyUI (default http://127.0.0.1:8188, set COMFYUI_URL) with a workflow file.")
     print("Run it like this:  uv run 03_one_knob.py ../comfyui_workflows/01_txt2img_sdxl.json --values 20,30,40")
     print("No ComfyUI on this machine? Demo 4.04 generates an image in the cloud instead.")

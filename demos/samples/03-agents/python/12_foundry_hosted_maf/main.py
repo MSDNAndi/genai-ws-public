@@ -12,7 +12,9 @@
 # genaiclass = { path = "../../../../shared/python", editable = true }
 # ///
 # %% [markdown]
-# # 12 - A Foundry hosted agent (Microsoft Agent Framework)
+# # 12 - A Foundry hosted agent (Microsoft Agent Framework)
+#
+# > **Codespace / notebook:** Run All builds the agent against the workshop endpoint but does not start the server (it would block the kernel). Serving locally: run `main.py` in a terminal; deploying to Foundry Agent Service (azd, Entra) is an instructor demo.
 #
 # | | |
 # |---|---|
@@ -46,6 +48,7 @@
 
 # %%
 import os
+import sys
 from typing import Annotated
 
 from agent_framework import Agent, tool
@@ -102,5 +105,9 @@ def build_agent() -> Agent:
 # the client never resends history.
 
 # %%
-if __name__ == "__main__":
+if __name__ == "__main__" and "ipykernel" not in sys.modules:   # a script / the container: serve
     ResponsesHostServer(build_agent()).run(port=int(os.environ.get("PORT", "8088")))
+else:   # a notebook: serving would block the kernel forever - start it from a terminal instead
+    print("Notebook run: the agent is defined. To serve it on :8088, run in a terminal:")
+    print("  python demos/samples/03-agents/python/12_foundry_hosted_maf/main.py")
+    print("then call it with sample 14.")

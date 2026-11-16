@@ -13,7 +13,9 @@
 # genaiclass = { path = "../../../../shared/python", editable = true }
 # ///
 # %% [markdown]
-# # 13 - A Foundry hosted agent (LangGraph)
+# # 13 - A Foundry hosted agent (LangGraph)
+#
+# > **Codespace / notebook:** Run All builds the graph against the workshop endpoint but does not serve it - serving needs `langchain-azure-ai[hosting]` (container only); deploying to Foundry Agent Service (azd, Entra) is an instructor demo.
 #
 # | | |
 # |---|---|
@@ -103,7 +105,10 @@ graph = create_agent(
 # Running this file directly does the same, so local and hosted stay identical.
 
 # %%
-if __name__ == "__main__":
+if __name__ != "__main__" or "ipykernel" in sys.modules:   # a notebook: serving would block the kernel
+    print("Notebook run: the graph is built. Serving it needs langchain-azure-ai[hosting], which only the")
+    print("container installs (requirements.txt here) - build/deploy it with azd or docker (instructor demo).")
+else:
     from langchain_azure_ai.agents.hosting import run
 
     here = os.path.dirname(os.path.abspath(__file__))

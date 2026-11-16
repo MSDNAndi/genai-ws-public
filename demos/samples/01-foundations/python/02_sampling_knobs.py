@@ -28,9 +28,9 @@ client = make_client(profile)
 print(banner(profile))
 
 # Reasoning models (gpt-5*, gpt-6*, o-series) accept only the default temperature and
-# reject top_p. The knobs need a non-reasoning model: GENAI_SAMPLING_MODEL (gpt-4.1 on
+# reject top_p. The knobs need a non-reasoning model: GENAI_SAMPLING_MODEL (grok-4-1-fast-non-reasoning on
 # the workshop gateway, see .env.example), else the profile's default model.
-MODEL = os.environ.get("GENAI_SAMPLING_MODEL") or profile.model
+MODEL = os.environ.get("GENAI_SAMPLING_MODEL") or ("grok-4-1-fast-non-reasoning" if profile.name == "foundry" else profile.model)
 print(f"sampling model: {MODEL}")
 
 PROMPT = "Invent a name for a coffee shop run by cats. Just the name."
@@ -60,7 +60,7 @@ except openai.BadRequestError as e:
     print()
     print(f"{MODEL} rejected the knob: {e.message[:160]}")
     print("Reasoning models fix temperature/top_p. Set GENAI_SAMPLING_MODEL to a non-reasoning")
-    print("model (gpt-4.1, gpt-4o-mini, DeepSeek-V3.2 ...) in .env and run this again.")
+    print("model (grok-4-1-fast-non-reasoning, gpt-4o-mini, DeepSeek-V3.2 ...) in .env and run this again.")
     sys.exit(0)
 
 # %% [markdown]
@@ -129,7 +129,7 @@ for effort in ("minimal", "low", "high"):
         r = client.chat.completions.create(model=REASONING_MODEL, reasoning_effort=effort,
                                            messages=[{"role": "user", "content": PUZZLE}])
     except openai.BadRequestError as e:
-        # non-reasoning models (gpt-4.1, the mock) have no such knob - say so and stop
+        # non-reasoning models (grok, DeepSeek, the mock) have no such knob - say so and stop
         print(f"{REASONING_MODEL} has no reasoning_effort: {e.message[:100]}")
         break
     u = r.usage
