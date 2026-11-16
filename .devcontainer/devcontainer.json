@@ -5,7 +5,9 @@
   "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/dotnet:2": { "version": "10.0" },
-    "ghcr.io/devcontainers/features/node:1": { "version": "24" }
+    "ghcr.io/devcontainers/features/node:1": { "version": "24" },
+    // gh: make a forwarded port public in one command (Lab 3 A2A): gh codespace ports visibility 8100:public -c $CODESPACE_NAME
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "hostRequirements": { "cpus": 2, "memory": "4gb" },
 
@@ -56,7 +58,9 @@
         "workbench.editorAssociations": { "*.md": "vscode.markdown.preview.editor", "*.ipynb": "jupyter-notebook" },
         // Demo notebooks (demos/notebooks): Run All uses labs/.venv, never the image's bare system Python
         "jupyter.kernels.excludePythonEnvironments": ["/usr/local/bin/python", "/usr/local/python/current/bin/python", "/usr/bin/python3"],
-        "csharp.suppressBuildAssetsNotification": true
+        "csharp.suppressBuildAssetsNotification": true,
+        // .NET 10 is already installed: stop the C# extension's ".NET install" attempt (red popup "No version was defined")
+        "dotnetAcquisitionExtension.existingDotnetPath": [ { "extensionId": "ms-dotnettools.csharp", "path": "/usr/share/dotnet/dotnet" } ]
       }
     }
   }
