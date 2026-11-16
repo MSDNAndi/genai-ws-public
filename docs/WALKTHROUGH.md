@@ -39,7 +39,9 @@ Red instead? The line tells you what to fix. The usual one: no key. Open `labs/.
 
 ## 5. Run your first lab
 
-`labs/START-HERE.md` has one command per language. Copy one into the terminal and press Enter.
+`labs/START-HERE.md` opens by itself (if not: click it in the Explorer on the left, under `labs`). It has one command per language: hover over a command, click the copy icon, paste it into the terminal and press Enter.
+
+![START-HERE.md](walkthrough/05b-start-here.jpg)
 
 **Python**
 
