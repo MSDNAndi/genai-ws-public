@@ -257,7 +257,8 @@ def make_public(port: int) -> None:
         print(f"  [public] gh is not installed here.\n{manual}", flush=True)
         return
     time.sleep(2)                                   # let the codespace notice the new port first
-    for attempt in (1, 2):
+    # VS Code forwards a new port only after a few seconds; until then gh answers "404 ... tunnel port" -> keep trying
+    for attempt in range(8):                        # ~40 s in total
         r = subprocess.run(["gh", "codespace", "ports", "visibility", f"{port}:public", "-c", name],
                            capture_output=True, text=True, timeout=60)
         if r.returncode == 0:
