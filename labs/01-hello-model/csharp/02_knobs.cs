@@ -3,8 +3,9 @@
 #:property PublishAot=false
 // Lab 1 · step 2 — the sampling knobs: temperature, top_p, seed ... and the models that ignore them.
 //
-// Reasoning models (gpt-5 family, o-series, many "thinking" models) fix temperature/top_p at their defaults and use
-// reasoning_effort instead. So this script asks the model first and falls back gracefully.
+// What this shows: the same prompt asked 3 times per setting, so you can see how "random" each setting makes the answer.
+// Reasoning models (gpt-5 family, o-series, many "thinking" models) lock temperature/top_p and offer
+// reasoning_effort instead — so if the model rejects a knob, the script switches to that experiment.
 // Tip: run it once with GENAI_MODEL=gpt-5-nano and once with GENAI_MODEL=$GENAI_MODEL_2 (e.g. DeepSeek-V4.1-Flash-1017) or Ollama.
 using System.ClientModel;
 using System.ClientModel.Primitives;
@@ -13,6 +14,7 @@ using OpenAI;
 using OpenAI.Chat;
 #pragma warning disable OPENAI001 // Seed and ReasoningEffortLevel are still marked "experimental" in the OpenAI .NET SDK 2.13
 
+// ---- 1. Settings and client (same as step 1) ----
 var labs = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? Directory.GetCurrentDirectory();
 while (!File.Exists(Path.Combine(labs, "_tools", "make_starters.py")))    // walk up to the labs/ root
     labs = Path.GetDirectoryName(labs) ?? throw new DirectoryNotFoundException("labs/_tools not found above this file");
@@ -27,18 +29,19 @@ var clientOptions = new OpenAIClientOptions { Endpoint = new Uri(Env("GENAI_BASE
 if ((Environment.GetEnvironmentVariable("GENAI_KEY_HEADER") ?? "api-key") == "api-key")
     clientOptions.AddPolicy(new HeaderPolicy("api-key", key), PipelinePosition.PerCall);
 ChatClient client = new OpenAIClient(new ApiKeyCredential(key), clientOptions).GetChatClient(model);
-// local "thinking" models: reasoning_effort=none keeps this fast (the knob experiment itself is below)
+// Only "none" is passed on here (local "thinking" models answer much faster without thinking);
+// the reasoning_effort experiment itself is further down.
 bool noThinking = Env("GENAI_REASONING_EFFORT", "") == "none";
 
 const string Prompt = "Invent a name for a coffee shop run by robots. Answer with the name only.";
 
-// Three answers with the same knobs, printed like a Python list.
+// ---- 2. Helper: ask the same question 3 times with the same knobs, printed like a Python list ----
 async Task<string> AskThreeTimes(Func<ChatCompletionOptions> knobs)
 {
     var answers = new List<string>();
     for (int i = 0; i < 3; i++)
     {
-        ChatCompletionOptions options = knobs();
+        ChatCompletionOptions options = knobs();          // a fresh options object per call
         if (noThinking) options.ReasoningEffortLevel = ChatReasoningEffortLevel.None;
         ChatCompletion r = await client.CompleteChatAsync([new UserChatMessage(Prompt)], options);
         answers.Add($"'{r.Content.FirstOrDefault()?.Text.Trim()}'");
@@ -46,35 +49,41 @@ async Task<string> AskThreeTimes(Func<ChatCompletionOptions> knobs)
     return $"[{string.Join(", ", answers)}]";
 }
 
+// ---- 3. The experiment: 3 answers per setting ----
 try
 {
+    // temperature: 0 = safe/repetitive, higher = more creative
     foreach (float t in new[] { 0.0f, 1.0f, 1.6f })
         Console.WriteLine($"temperature={t:0.0}: {await AskThreeTimes(() => new() { Temperature = t })}");
+    // top_p=0.1: only pick from the top 10% most likely words
     Console.WriteLine($"temperature=1.0, top_p=0.1: {await AskThreeTimes(() => new() { Temperature = 1.0f, TopP = 0.1f })}");
+    // seed: asks for repeatable randomness — most providers only try their best
     Console.WriteLine($"temperature=1.0, seed=42 (best effort!): {await AskThreeTimes(() => new() { Temperature = 1.0f, Seed = 42 })}");
 }
+// ---- 4. Plan B: the model said "400 Bad Request" to temperature -> try its own knob, reasoning_effort ----
 catch (ClientResultException e) when (e.Status == 400)            // HTTP 400 = the service rejected a parameter
 {
     Console.WriteLine($"'{model}' rejected a sampling knob -> it is probably a reasoning model.\n  {Cut(e.Message.ReplaceLineEndings(" "), 200)}");
     Console.WriteLine("Reasoning models expose a different knob: reasoning_effort (how long they think).");
     foreach (var effort in new[] { "minimal", "low", "high" })
     {
-        var clock = Stopwatch.StartNew();
+        var clock = Stopwatch.StartNew();                  // more thinking = slower
         try
         {
             ChatCompletion r = await client.CompleteChatAsync([new UserChatMessage("Is 1001 prime? One line.")],
                 new ChatCompletionOptions { ReasoningEffortLevel = new ChatReasoningEffortLevel(effort) });
-            ChatTokenUsage u = r.Usage;
+            ChatTokenUsage u = r.Usage;                     // ReasoningTokenCount = the hidden "thinking" tokens
             Console.WriteLine($"  reasoning_effort={effort,-7} {clock.Elapsed.TotalSeconds,5:F1}s  completion={u.OutputTokenCount} " +
                               $"(reasoning={u.OutputTokenDetails?.ReasoningTokenCount})  -> {Cut(r.Content.FirstOrDefault()?.Text.Trim() ?? "", 60)}");
         }
-        catch (ClientResultException e2) when (e2.Status == 400)
+        catch (ClientResultException e2) when (e2.Status == 400)   // not every model knows every effort level
         {
             Console.WriteLine($"  reasoning_effort={effort}: not supported here ({Cut(e2.Message.ReplaceLineEndings(" "), 80)})");
         }
     }
 }
 
+// Cut(text, n) = the first n characters, so long error messages stay on one line.
 static string Cut(string text, int max) => text.Length <= max ? text : text[..max];
 
 // What to notice:
@@ -82,7 +91,8 @@ static string Cut(string text, int max) => text.Length <= max ? text : text[..ma
 //  * top_p=0.1 narrows the choice to the few most likely tokens — similar effect to a low temperature.
 //  * reasoning tokens are billed even though you never see them.
 
-sealed class HeaderPolicy(string name, string value) : PipelinePolicy   // adds the key header to every request
+// Plumbing (same in every file): adds the "api-key" header to every request. You can skip reading this.
+sealed class HeaderPolicy(string name, string value) : PipelinePolicy
 {
     public override void Process(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int index)
     { message.Request.Headers.Set(name, value); ProcessNext(message, pipeline, index); }

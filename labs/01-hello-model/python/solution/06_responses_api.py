@@ -1,7 +1,7 @@
 """Lab 1 · stretch — the Responses API: the newer dialect at OpenAI and Foundry (/openai/v1/responses).
 
-Differences to Chat Completions you can see here: `input` + `instructions` instead of messages; server-side
-conversation state via `previous_response_id`; typed output items; streaming as semantic events.
+What this shows, compared with Chat Completions: `input` + `instructions` instead of a messages list; the server
+can remember the conversation (`previous_response_id`); streaming arrives as named events.
 Works on Foundry and OpenAI. Local runners and gateways may only speak Chat Completions — that is why every
 other lab uses Chat Completions (see research/2026-09-22_framework-snippet-verification.md).
 """
@@ -11,6 +11,7 @@ from dotenv import find_dotenv, load_dotenv
 from pathlib import Path as _Path
 from openai import OpenAI
 
+# ---- 1. Settings and client (same as step 1) ----
 _here = _Path(globals().get("__file__", ".")).resolve()   # no __file__ in a notebook: start at the cwd
 for _folder in [*_here.parents, _Path.cwd(), *_Path.cwd().parents]:
     if (_folder / ".env").is_file():   # every .env from this file upward: the nearest one wins,
@@ -21,10 +22,12 @@ client = OpenAI(base_url=BASE, api_key=KEY, default_headers=HEADERS)
 # The Responses API spells the reasoning knob differently: reasoning={"effort": ...}
 EXTRA = {"reasoning": {"effort": os.environ["GENAI_REASONING_EFFORT"]}} if os.getenv("GENAI_REASONING_EFFORT") else {}
 
+# ---- 2. Call 1: one question in, output_text out ----
 first = client.responses.create(model=MODEL, instructions="Be brief.", **EXTRA,
                                 input="Name one advantage of running a model locally.")
-print("1:", first.output_text)
+print("1:", first.output_text)                          # output_text = all the answer's text joined together
 
+# ---- 3. Call 2: a follow-up without resending the history ----
 # The service keeps the conversation: refer to the previous turn by id instead of resending the history.
 # (Needs the endpoint to store responses; if yours does not, resend the history as input items instead.)
 try:
@@ -34,9 +37,10 @@ try:
 except Exception as e:
     print("2: previous_response_id not supported here ->", str(e)[:120])
 
+# ---- 4. Call 3: streaming — print the text piece by piece as it arrives ----
 print("3 (streamed): ", end="", flush=True)
 with client.responses.stream(model=MODEL, input="Count from 1 to 5, comma separated.", **EXTRA) as stream:
-    for event in stream:
+    for event in stream:                                # many event types; we only want new text
         if event.type == "response.output_text.delta":
             print(event.delta, end="", flush=True)
 print()

@@ -11,6 +11,8 @@ contract · the loop `model → tool call → your code → tool result → mode
 
 **Before you start:** `00-setup` is green and `labs/.env` holds the values from your handout card.
 
+**Switching models:** change only `GENAI_MODEL=...` in `labs/.env` (e.g. to your `GENAI_MODEL_2`) — nothing else.
+
 ## How this folder works
 Each language folder has *starters* (with `TODO` blocks to fill in) and a `solution/` folder with the finished code.
 Files without a TODO simply run — read them, run them, change them.
@@ -61,8 +63,9 @@ model, a second vendor behind the same key (`GENAI_MODEL_2`), and Ollama (+ LM S
 
 ## Troubleshooting
 401 → key/header · 404 → model name or URL (`…/openai/v1`) · 429 → per-minute limit, wait a minute · 403 → today's quota is used up, ask the instructor ·
-"Unrecognized request argument supplied: reasoning_effort" / "Property reasoning_effort has an invalid value" → remove `GENAI_REASONING_EFFORT` (or set it to `none`) for that model · a local model "thinks" for a long
-time → `OLLAMA_REASONING_EFFORT=none`.
+a local model "thinks" for a long time → `OLLAMA_REASONING_EFFORT=none` · "reasoning_effort" rejected by a
+*local or non-workshop* endpoint → remove `GENAI_REASONING_EFFORT` (or set it to `none`) there. On the workshop
+endpoint you never need to touch it: the gateway drops the setting for models that don't support it.
 
 ## Why it matters
 Every product you will meet today — RAG, MCP servers, agents, media pipelines — is this loop plus context. Once the

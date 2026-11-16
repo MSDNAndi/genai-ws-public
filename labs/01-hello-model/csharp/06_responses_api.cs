@@ -3,8 +3,8 @@
 #:property PublishAot=false
 // Lab 1 · stretch — the Responses API: the newer dialect at OpenAI and Foundry (/openai/v1/responses).
 //
-// Differences to Chat Completions you can see here: input items + instructions instead of messages; server-side
-// conversation state via PreviousResponseId; typed output items; streaming as semantic events.
+// What this shows, compared with Chat Completions: input items + instructions instead of a messages list; the server
+// can remember the conversation (PreviousResponseId); streaming arrives as named events.
 // Works on Foundry and OpenAI. Local runners and gateways may only speak Chat Completions — that is why every
 // other lab uses Chat Completions.
 using System.ClientModel;
@@ -13,6 +13,7 @@ using OpenAI;
 using OpenAI.Responses;
 #pragma warning disable OPENAI001 // the Responses client is still marked "experimental" in the OpenAI .NET SDK 2.13
 
+// ---- 1. Settings and client (same as step 1) ----
 var labs = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? Directory.GetCurrentDirectory();
 while (!File.Exists(Path.Combine(labs, "_tools", "make_starters.py")))    // walk up to the labs/ root
     labs = Path.GetDirectoryName(labs) ?? throw new DirectoryNotFoundException("labs/_tools not found above this file");
@@ -38,11 +39,13 @@ CreateResponseOptions Request(string input)
     return request;
 }
 
+// ---- 2. Call 1: one question in, output text out ----
 CreateResponseOptions firstRequest = Request("Name one advantage of running a model locally.");
 firstRequest.Instructions = "Be brief.";
 ResponseResult first = await client.CreateResponseAsync(firstRequest);
-Console.WriteLine($"1: {first.GetOutputText()}");
+Console.WriteLine($"1: {first.GetOutputText()}");      // GetOutputText() = all the answer's text joined together
 
+// ---- 3. Call 2: a follow-up without resending the history ----
 // The service keeps the conversation: refer to the previous turn by id instead of resending the history.
 // (Needs the endpoint to store responses; if yours does not, resend the history as input items instead.)
 try
@@ -57,6 +60,7 @@ catch (Exception e)
     Console.WriteLine($"2: previous_response_id not supported here -> {Cut(e.Message.ReplaceLineEndings(" "), 120)}");
 }
 
+// ---- 4. Call 3: streaming — print the text piece by piece as it arrives ----
 Console.Write("3 (streamed): ");
 CreateResponseOptions streamRequest = Request("Count from 1 to 5, comma separated.");
 streamRequest.StreamingEnabled = true;                  // the 2.13 SDK insists on this flag for the streaming call
@@ -66,9 +70,11 @@ await foreach (StreamingResponseUpdate update in client.CreateResponseStreamingA
 }
 Console.WriteLine();
 
+// Cut(text, n) = the first n characters, so long error messages stay on one line.
 static string Cut(string text, int max) => text.Length <= max ? text : text[..max];
 
-sealed class HeaderPolicy(string name, string value) : PipelinePolicy   // adds the key header to every request
+// Plumbing (same in every file): adds the "api-key" header to every request. You can skip reading this.
+sealed class HeaderPolicy(string name, string value) : PipelinePolicy
 {
     public override void Process(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int index)
     { message.Request.Headers.Set(name, value); ProcessNext(message, pipeline, index); }
