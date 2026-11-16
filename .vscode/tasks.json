@@ -1,0 +1,201 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "S1 · Demo: tokens and attention, live (slide 20)",
+      "type": "shell",
+      "command": "python try/s1_tokens.py\npython try/s1_tokens.py \"Donaudampfschifffahrt ist schön 🚢\"",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S1 · Demo: what reasoning_effort costs — and who refuses it (slide 51)",
+      "type": "shell",
+      "command": "GENAI_MODEL=gpt-5-nano python try/s1_effort_cost.py\nGENAI_MODEL=DeepSeek-V4.1-Flash-1017 python try/s1_effort_cost.py",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S1 · Demo: one script, five providers (slide 61)",
+      "type": "shell",
+      "command": "python try/s1_five_providers.py",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S2 · Docling → embeddings → pgvector → a cited answer (slide 79)",
+      "type": "shell",
+      "command": "bash try/s2_structured_rag.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S2 · Prompt injection, live (slide 89)",
+      "type": "shell",
+      "command": "python try/s2_prompt_injection.py; python try/s2_prompt_injection.py --guard",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S2 · One MCP server in Inspector, LM Studio and Claude Code (slide 97)",
+      "type": "shell",
+      "command": "test -f 02-rag-mcp/build/index.json || python 02-rag-mcp/python/solution/02_embed.py\nnpx -y @modelcontextprotocol/inspector --cli --connect-timeout 60000 -e GENAI_API_KEY=$GENAI_API_KEY .venv/bin/python 02-rag-mcp/python/solution/04_mcp_server.py --method tools/call --tool-name search_docs --tool-arg \"query=how long are proof-of-delivery photos kept?\" --tool-arg k=2",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S3 · MAF researcher -> writer with the Lab 2 MCP tool (slide 137)",
+      "type": "shell",
+      "command": "test -f 02-rag-mcp/build/index.json || python 02-rag-mcp/python/solution/02_embed.py\npython 03-agents/python/solution/03_workflow.py\ndotnet run --file 03-agents/csharp/solution/03_workflow.cs",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S4 · a Qwen3.8-27B tool call on Ollama (slide 169)",
+      "type": "shell",
+      "command": "GENAI_MODEL=gpt-oss-120b python 01-hello-model/python/solution/04_tool_loop.py",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S4 · one model, two servers, eight clients (slide 170)",
+      "type": "shell",
+      "command": "python try/s4_eight_clients.py gpt-oss-120b",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S4 · Gemma 4 E4B hears you (slide 180)",
+      "type": "shell",
+      "command": "python try/s4_hear.py \"Which planet has the most moons?\"",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S4 · Z-Image-Turbo in ComfyUI: seed and CFG live (slide 186)",
+      "type": "shell",
+      "command": "python _tools/comfy_mock.py 8188 >/dev/null 2>&1 & M=$!; sleep 2; python 04-local-media/python/solution/03_one_knob.py 04-local-media/comfyui_workflows/01_txt2img_sdxl.json --knob seed --values 42 42 7; python 04-local-media/python/solution/03_one_knob.py 04-local-media/comfyui_workflows/01_txt2img_sdxl.json --knob cfg --values 2 7 15 --seed 42; kill $M",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S4 · Qwen3-TTS voice clone + Parakeet live captions (slide 201)",
+      "type": "shell",
+      "command": "python 04-local-media/python/solution/06_chain.py --topic \"a radio host welcoming listeners\" --image skip --voice coral --tone \"a calm late-night radio host, slightly amused\" --check",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S4 · the music-video chain, stage by stage + Wan2GP (slide 215)",
+      "type": "shell",
+      "command": "python 04-local-media/python/solution/06_chain.py --topic \"a singer on stage at a tech conference\" --writer Llama-4-Maverick-17B-128E-Instruct-FP8 --check",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "S4 · Closer: an ACE-Step song about today (slide 223)",
+      "type": "shell",
+      "command": "python try/s4_song.py --tone \"a slow, gravelly blues singer\"",
+      "options": {
+        "cwd": "${workspaceFolder}/labs"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}

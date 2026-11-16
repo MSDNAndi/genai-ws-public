@@ -1,5 +1,7 @@
 # Try it yourself: every demo from the talk
 
+**Fastest: open [TRY-IT.ipynb](TRY-IT.ipynb) and click ▶ next to your slide — no copy-paste.** Or Ctrl+Shift+P → *Tasks: Run Task* → pick the slide.
+
 Every "LIVE DEMO" slide has a version you can run in your codespace. Run the commands **from `labs/`** (the terminal starts there). Where a demo needs a GPU or software a codespace cannot have, you get the closest cloud version or a clear "watch only".
 
 No setup needed: same key, same settings as the labs. Tip: open any `.py`, `.cs` or `.mjs` file and click **▶ Run Code** (top right).
