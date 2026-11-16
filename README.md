@@ -6,6 +6,7 @@
 
 Click the button, paste the key from your card into the **GENAI_API_KEY** box, click **Create codespace**. Step by step with screenshots: [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md).
 Prefer your own machine? Follow `labs/00-setup/SETUP.md` below.
+How the workshop endpoint is built (gateway, limits, identity) and how the same labs run on a local model: [docs/HOW-ITS-DEPLOYED.md](docs/HOW-ITS-DEPLOYED.md).
 
 
 Two folders:
